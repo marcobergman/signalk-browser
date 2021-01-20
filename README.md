@@ -13,4 +13,4 @@ var mySignalkURL = "10.10.10.1:3000"
 
 ```
 
-![example](https://github.com/marcobergman/SignalkDataBrowser/blob/master/Capture.PNG)
+![example](https://github.com/marcobergman/SignalkDataBrowser/blob/master/example.png)
