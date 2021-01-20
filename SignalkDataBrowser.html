@@ -53,6 +53,9 @@ function printSignalkTable(tableData) {
 	// sort the table first
 	tableData = sortDictionary(tableData);
 	for (key in tableData) {
+		path = tableData[key]['path']
+		unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
+
 		// get the value
 		if (typeof(tableData[key]['value']) != 'object')
 			value = tableData[key]['value'];
@@ -61,20 +64,23 @@ function printSignalkTable(tableData) {
 			value = JSON.stringify(tableData[key]['value']);
 			
 		// convert odd units
-		unit = tableData[key]['unit'];
 		if (unit == 'rad') {
 			value = Math.round (value / Math.PI * 180, 0);
 			unit = 'deg';
 		}
 		if (unit == 'm/s') {
-			value = Math.round (value * 3600 / 1852, 1);
+			value = (value * 3600 / 1852).toFixed(1);
 			unit = 'kts';
+		}
+		if (unit == 'm') {
+			value = (value / 1852).toFixed(2);
+			unit = 'NM';
 		}
 		
 		timestamp = tableData[key]['timestamp'].substring(11, 19);
 		
 		result += "<tr>";
-		result += "<td>" + tableData[key]['path'] + "</td>";
+		result += "<td>" + path + "</td>";
 		result += "<td>" + value + "</td>";
 		result += "<td>" + unit + "</td>";
 		result += "<td>" + tableData[key]['source'] + "</td>";
@@ -109,7 +115,7 @@ function onSchema(responseText) {
 		if (jsonObj && typeof jsonObj == "object") {
 			Object.entries(jsonObj).forEach(([key, value]) => {
 				if (key == 'units') {
-					elements = path.split(".").slice(3); // split it up, and cut off vessel + uri
+					elements = path.split(".").splice(1); // split it up
 					elements = elements.filter(function(value, index, arr){
 						return (value != "meta" && value != "properties");   // cut out some elements
 					}) 
@@ -128,8 +134,9 @@ function onSchema(responseText) {
 	//logDiv.innerHTML = JSON.stringify(units, null, 2);
 }
 
+
 // get the schema definition file and let onSchema() do what needs to be done with it
-httpGetAsync("http://" + mySignalkURL + "/signalk/v1/api/", onSchema);
+httpGetAsync("http://" + mySignalkURL + "/signalk/v1/api/vessels/self/", onSchema);
 
 
 // set up the stream of signalk deltas
@@ -161,8 +168,7 @@ ws.onmessage = function(event) {
 			for (tuple in values) {
 				path = values[tuple]['path'];
 				value = values[tuple]['value'];
-				unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
-				entry = {timestamp, source, path, value, unit};
+				entry = {timestamp, source, path, value};
 				signalkData[path + source] = entry;  // store in the dictionary
 			}
 			
