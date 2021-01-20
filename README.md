@@ -1,9 +1,9 @@
 # SignalkDataBrowser
 
-One-file, html and javascript based tool that presents the 'self' data from a local SignalK engine. It converts units to nautical units.
+One-file, html and javascript based tool that presents the 'self' data from a local SignalK engine. It converts units to nautical units. It updates automatically.
 
 Usage
-Adjust the variable mySignalkURL to reflect the IP of your SignalK server. 
+- Adjust the variable mySignalkURL to reflect the IP of your SignalK server. 
 ```
 //
 // Configure your signalk url:port below, like openplotter.pypilot.org:3000 or 10.10.10.1:3000
