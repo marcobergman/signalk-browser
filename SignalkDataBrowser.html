@@ -80,7 +80,7 @@ function printSignalkTable(tableData) {
 		timestamp = tableData[key]['timestamp'].substring(11, 19);
 		
 		result += "<tr>";
-		result += "<td>" + path + "</td>";
+		result += "<td><a title='" + descriptions[path] + "'>" + path + "</a></td>";
 		result += "<td>" + value + "</td>";
 		result += "<td>" + unit + "</td>";
 		result += "<td>" + tableData[key]['source'] + "</td>";
@@ -104,6 +104,7 @@ function httpGetAsync(theUrl, callback) {
 
 
 var units = {}  // holds (path, units) tuplets, derived from the schema definition
+var descriptions = {}  // holds (path, description) tuplets, derived from the schema definition
 
 function onSchema(responseText) {
 	// respond to the reception of a schema file
@@ -114,13 +115,16 @@ function onSchema(responseText) {
 		// traverse the schema and store the units per path in the dictionary called 'units'
 		if (jsonObj && typeof jsonObj == "object") {
 			Object.entries(jsonObj).forEach(([key, value]) => {
-				if (key == 'units') {
+				if (key == 'units' || key == 'description') {
 					elements = path.split(".").splice(1); // split it up
 					elements = elements.filter(function(value, index, arr){
 						return (value != "meta" && value != "properties");   // cut out some elements
 					}) 
 					elements = elements.join(".");   // stick it together again
-					units[elements] = value;    // and poke it in the dictionary
+					if (key == 'units') 
+						units[elements] = value;    // and poke it in the dictionary
+					else
+						descriptions[elements] = value
 					//console.log(elements + " (" + value + ")");
 				}
 				else {
@@ -131,7 +135,7 @@ function onSchema(responseText) {
 	}
 	
 	traverse (schema, "")
-	//logDiv.innerHTML = JSON.stringify(units, null, 2);
+	//logDiv.innerHTML = JSON.stringify(units, null, 2) + JSON.stringify(descriptions, null, 2);
 }
 
 
