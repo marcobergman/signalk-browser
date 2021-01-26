@@ -6,10 +6,16 @@
 
   <title>SignalK Data Browser</title>
   <style>
-	tr:nth-child(odd) { background-color: #f2f2f2; }
+	#data tr:nth-child(odd) { background-color: #f2f2f2; }
+	#displayLabel td {vertical-align: top;; font-weight: bold}
+	#displayValue td {text-align: center; vertical-align: middle; font-size: xx-large; font-weight: bold}
+	#displayUnit td {text-align: center; vertical-align: middle;}
   </style>
 </head>
 <body>
+  <pre>
+    <div id="display"/>
+  </pre>
   <pre>
     <div id="data"/>
   </pre>
@@ -26,9 +32,17 @@
 //
 var mySignalkURL = "10.10.10.1:3000"
 
+var displayDiv = document.getElementById('display');
 var dataDiv = document.getElementById('data');
 var logDiv = document.getElementById('log');
 
+presentation = 'table'
+parameter_pairs = window.location.search.slice(1).split("&")
+parameter_pairs.forEach(function (item) {
+	if (item.split("=")[0] == "presentation")
+		if (item.split("=")[1] == "display")
+			presentation = 'display';
+})
 
 function sortDictionary(dict) {
 	// sort a dictionary based on the key
@@ -46,6 +60,41 @@ function sortDictionary(dict) {
     return tempDict;
 }
 
+function processKey(key, tableData) {
+	// based on the name of the key, get the constituents out of the tableData and convert if needed
+	myRow = tableData[key];
+	path = tableData[key]['path']
+	unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
+
+	// get the value
+	if (typeof(tableData[key]['value']) != 'object')
+		value = tableData[key]['value'];
+	else
+		// show complex values as json
+		value = JSON.stringify(tableData[key]['value']);
+		
+	// convert odd units
+	if (unit == 'rad') {
+		value = Math.round (value / Math.PI * 180, 0);
+		unit = 'deg';
+	}
+	if (unit == 'm/s') {
+		value = (value * 3600 / 1852).toFixed(1);
+		unit = 'kts';
+	}
+	if (unit == 'm') {
+		value = (value / 1852).toFixed(2);
+		unit = 'NM';
+	}
+	if (unit == 'K') {
+				value = (value - 273.15).toFixed(2);
+				unit = '°C';
+	}
+	timestamp = tableData[key]['timestamp'].substring(11, 19);
+		
+	return {path, unit, value, timestamp, source}
+}
+
 
 function printSignalkTable(tableData) {
 	// print the contents of a dictionary in the form of an HTML table
@@ -53,41 +102,52 @@ function printSignalkTable(tableData) {
 	// sort the table first
 	tableData = sortDictionary(tableData);
 	for (key in tableData) {
-		path = tableData[key]['path']
-		unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
-
-		// get the value
-		if (typeof(tableData[key]['value']) != 'object')
-			value = tableData[key]['value'];
-		else
-			// show complex values as json
-			value = JSON.stringify(tableData[key]['value']);
-			
-		// convert odd units
-		if (unit == 'rad') {
-			value = Math.round (value / Math.PI * 180, 0);
-			unit = 'deg';
-		}
-		if (unit == 'm/s') {
-			value = (value * 3600 / 1852).toFixed(1);
-			unit = 'kts';
-		}
-		if (unit == 'm') {
-			value = (value / 1852).toFixed(2);
-			unit = 'NM';
-		}
 		
-		timestamp = tableData[key]['timestamp'].substring(11, 19);
+		let {path, unit, value, timestamp, source} = processKey(key, tableData)
 		
-		result += "<tr>";
-		result += "<td><a title='" + descriptions[path] + "'>" + path + "</a></td>";
-		result += "<td>" + value + "</td>";
-		result += "<td>" + unit + "</td>";
-		result += "<td>" + tableData[key]['source'] + "</td>";
-		result += "<td>" + timestamp + "</td>";
-		result += "</tr>";
+		if (path != key) {
+			result += "<tr>";
+			result += "<td><a title='" + descriptions[path] + "'>" + path + "</a></td>";
+			result += "<td>" + value + "</td>";
+			result += "<td>" + unit + "</td>";
+			result += "<td>" + tableData[key]['source'] + "</td>";
+			result += "<td>" + timestamp + "</td>";
+			result += "</tr>";
+		}
 	}
-	document.getElementById('data').innerHTML = result + "</table>";
+	dataDiv.innerHTML = result + "</table>";
+}
+
+
+function printSignalkDisplay(tableData) {
+	// print the contents of a dictionary in the form of an HTML table
+	function printCell (key, label) {
+		let {path, unit, value, timestamp, source} = processKey(key, tableData)
+		
+		result += "<td><table border=0 width='100%'>";
+		result += "<tr id='displayLabel'><td><a title='" + descriptions[path] + "'>" + label + "</a></td>";
+		result += "<tr id='displayValue'><td>" + value + "</td>";
+		result += "<tr id='displayUnit'><td>" + unit + "</td>";
+		result += "</table></td>";
+	}
+	
+	var result = "<table border=1 width='300'>";
+	result += "<tr>";
+	printCell('navigation.headingTrue', 'HDG');
+	printCell('navigation.courseOverGroundTrue', 'COG');
+	result += "</tr><tr>";
+	printCell('navigation.speedThroughWater', 'STW');
+	printCell('navigation.speedOverGround', 'SOG');
+	result += "</tr><tr>";
+	printCell('environment.wind.angleApparent', 'AWA');
+	printCell('environment.wind.angleTrueWater', 'TWA');
+	result += "</tr><tr>";
+	printCell('environment.wind.speedApparent', 'AWS');
+	printCell('environment.wind.speedTrue', 'TWS');
+	result += "</tr><tr>";
+	printCell('environment.wind.directionTrue', 'TWD');
+	result += "</tr>";
+	displayDiv.innerHTML = result + "</table>";
 }
 
 
@@ -174,10 +234,17 @@ ws.onmessage = function(event) {
 				value = values[tuple]['value'];
 				entry = {timestamp, source, path, value};
 				signalkData[path + source] = entry;  // store in the dictionary
+				signalkData[path] = entry;  // store in the dictionary
+				if (path == 'navigation.headingTrue') {
+					//console.log(JSON.stringify(json, null, 2), entry)
+				}
 			}
 			
 			// present the updated dictionary to the screen
-			printSignalkTable(signalkData);
+			if (presentation == 'table')
+				printSignalkTable(signalkData);
+			else
+				printSignalkDisplay(signalkData);
 		} 
 	}
 }
