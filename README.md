@@ -16,3 +16,6 @@ Then, open the file in your browser. You can also copy it to the public director
 
 ![example](example.png)
 
+With ?presentation=display, it shows a selection of values in a way that does well on mobile devices:
+
+![example](example2.png)
