@@ -67,7 +67,7 @@ function processKey(key, signalkData) {
 	unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
 	timestamp = myRow['timestamp'];
 	source = myRow['source'];
-	stale = Date.now() - timestamp > 2000 ? true : false;
+	stale = Date.now() - timestamp > 5000 ? true : false;
 
 	// get the value
 	if (typeof(myRow['value']) != 'object')
