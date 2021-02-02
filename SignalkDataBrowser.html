@@ -36,6 +36,8 @@ var displayDiv = document.getElementById('display');
 var dataDiv = document.getElementById('data');
 var logDiv = document.getElementById('log');
 
+var spinner ="◐◓◑◒"
+
 presentation = 'table'
 parameter_pairs = window.location.search.slice(1).split("&")
 parameter_pairs.forEach(function (item) {
@@ -166,6 +168,8 @@ function printSignalkDisplay(signalkData) {
 	printCell('environment.wind.speedTrue', 'TWS');
 	result += "</tr><tr>";
 	printCell('environment.wind.directionTrue', 'TWD');
+	i = ~~(Date.now()/1000) % (spinner.length)
+	result += ("<td align=center><h1>" + spinner[i] + "</td>")
 	result += "</tr>";
 	displayDiv.innerHTML = result + "</table>";
 }
