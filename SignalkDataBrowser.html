@@ -14,13 +14,13 @@
 </head>
 <body>
   <pre>
-    <div id="display"/>
+	<div id="display"/>
   </pre>
   <pre>
-    <div id="data"/>
+	<div id="data"/>
   </pre>
   <pre>
-    <div id="log"/>
+	<div id="log"/>
   </pre>
 </body>
 
@@ -30,7 +30,7 @@
 // Marco Bergman 2021
 // Configure your signalk url:port below, like openplotter.pypilot.org:3000 or 10.10.10.1:3000
 //
-var mySignalkURL = "10.10.10.1:3000"
+var mySignalkURL = "192.168.178.37:3000"
 
 var displayDiv = document.getElementById('display');
 var dataDiv = document.getElementById('data');
@@ -38,78 +38,94 @@ var logDiv = document.getElementById('log');
 
 var spinner ="◐◓◑◒"
 
+// process http parameters
 presentation = 'table'
 parameter_pairs = window.location.search.slice(1).split("&")
 parameter_pairs.forEach(function (item) {
 	if (item.split("=")[0] == "presentation")
-		if (item.split("=")[1] == "display")
-			presentation = 'display';
+		presentation = item.split("=")[1]
 })
 
 function sortDictionary(dict) {
 	// sort a dictionary based on the key
-    var sorted = [];
-    for(var key in dict) {
-        sorted[sorted.length] = key;
-    }
-    sorted.sort();
+	var sorted = [];
+	for(var key in dict) {
+		sorted[sorted.length] = key;
+	}
+	sorted.sort();
 
-    var tempDict = {};
-    for(var i = 0; i < sorted.length; i++) {
-        tempDict[sorted[i]] = dict[sorted[i]];
-    }
+	var tempDict = {};
+	for(var i = 0; i < sorted.length; i++) {
+		tempDict[sorted[i]] = dict[sorted[i]];
+	}
 
-    return tempDict;
+	return tempDict;
 }
 
-function processKey(key, signalkData) {
+function getKey(key, signalkData) {
 	// based on the name of the key, get the constituents out of the signalkData and convert if needed
 	myRow = signalkData[key];
-	path = myRow['path']
-	unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
-	timestamp = myRow['timestamp'];
-	source = myRow['source'];
-	stale = Date.now() - timestamp > 5000 ? true : false;
+	try {
+		path = myRow['path']
+		unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
+		timestamp = myRow['timestamp'];
+		source = myRow['source'];
+		stale = Date.now() - timestamp > 5000 ? true : false;
 
-	// get the value
-	if (typeof(myRow['value']) != 'object')
-		value = myRow['value'];
-	else
-		// show complex values as json
-		value = JSON.stringify(myRow['value']);
-		
-	// convert odd units
-	if (unit == 'rad') {
-		value = Math.round (value / Math.PI * 180, 0);
-		unit = 'deg';
+		// get the value
+		if (typeof(myRow['value']) != 'object')
+			value = myRow['value'];
+		else
+			// show complex values as json
+			value = JSON.stringify(myRow['value']);
+			
+		// convert odd units
+		if (unit == 'rad') {
+			value = Math.round (value / Math.PI * 180, 0);
+			unit = 'deg';
+		}
+		if (unit == 'm/s') {
+			value = (value * 3600 / 1852).toFixed(1);
+			unit = 'kts';
+		}
+		if (unit == 'm') {
+			value = (value / 1852).toFixed(2);
+			unit = 'NM';
+		}
+		if (unit == 'K') {
+					value = (value - 273.15).toFixed(2);
+					unit = '°C';
+		}
 	}
-	if (unit == 'm/s') {
-		value = (value * 3600 / 1852).toFixed(1);
-		unit = 'kts';
-	}
-	if (unit == 'm') {
-		value = (value / 1852).toFixed(2);
-		unit = 'NM';
-	}
-	if (unit == 'K') {
-				value = (value - 273.15).toFixed(2);
-				unit = '°C';
+	catch {
+		return {}
 	}
 	
 	return {path, unit, value, timestamp, source, stale}
 }
 
 
-function formatTimestamp(timestamp) {
-    var date = new Date(timestamp)
+function getValue(key, signalkData) {
+	// Get only the value of a key
+	let {path, unit, value, timestamp, source, stale} 
+		= getKey(key, signalkData);
+	if (! stale)
+		return value;
+	else
+		return null;
+}
 
-    var hour = date.getHours();
-    var min = date.getMinutes();
-    var sec = date.getSeconds();
+
+function formatTimestamp(timestamp) {
+	var date = new Date(timestamp)
+
+	var hour = date.getHours();
+	var min = date.getMinutes();
+	var sec = date.getSeconds();
 	
-    hour = (hour < 10 ? "0" : "") + hour;
-    min = (min < 10 ? "0" : "") + min;
-    sec = (sec < 10 ? "0" : "") + sec;
+	hour = (hour < 10 ? "0" : "") + hour;
+	min = (min < 10 ? "0" : "") + min;
+	sec = (sec < 10 ? "0" : "") + sec;
 	
 	return hour + ":" + min + ":" + sec;
 }
@@ -125,7 +141,7 @@ function printSignalkTable(signalkData) {
 
 	for (key in signalkData) {
 		
-		let {path, unit, value, timestamp, source, stale} = processKey(key, signalkData)
+		let {path, unit, value, timestamp, source, stale} = getKey(key, signalkData)
 		
 		if (path != key) {
 			result += "<tr>";
@@ -144,7 +160,7 @@ function printSignalkTable(signalkData) {
 function printSignalkDisplay(signalkData) {
 	// print the contents of a dictionary in the form of an HTML table
 	function printCell (key, label) {
-		let {path, unit, value, timestamp, source, stale} = processKey(key, signalkData)
+		let {path, unit, value, timestamp, source, stale} = getKey(key, signalkData)
 		
 		result += "<td><table border=0 width='100%'>";
 		result += "<tr id='displayLabel'><td><a title='" + descriptions[path] + "'>" + label + "</a></td>";
@@ -175,15 +191,109 @@ function printSignalkDisplay(signalkData) {
 }
 
 
+function printSignalkGauge(signalkData) {
+	displayDiv.innerHTML = '<canvas id="myCanvas" width="900" height="900"></canvas>';
+	var limit = 45;
+	var canvas = document.getElementById("myCanvas");
+	var ctx = canvas.getContext("2d");
+	var radius = canvas.width / 2;
+	ctx.translate(radius, radius);
+	radius = radius * 0.90
+
+	function Arc(from, to, offset, lineWidth, strokeStyle){
+		ctx.beginPath();
+		ctx.lineWidth = lineWidth;
+		ctx.strokeStyle = strokeStyle;
+		ctx.arc(0,0,radius + offset, from/180*Math.PI, to/180*Math.PI)
+		ctx.stroke();
+	}
+
+	function drawHand(ctx, pos, length, fillStyle) {
+		var width = radius/15;
+		ctx.fillStyle = fillStyle;
+		ctx.lineWidth = radius/20;
+		ctx.lineCap = "round";
+		ctx.rotate(pos/180*Math.PI);
+		ctx.beginPath();
+		ctx.moveTo(-width, 0);
+		ctx.lineTo(width, 0);
+		ctx.lineTo(0, -length);
+		ctx.lineTo(-width, 0);
+		ctx.fill();
+		ctx.rotate(-pos/180*Math.PI);
+	}
+
+	function drawBug(ctx, pos) {
+		// Draw heading bug, if BRG available
+		ctx.rotate(pos/180*Math.PI);
+		Arc(270-5, 270+5, 0, radius/8, "orange");
+		ctx.rotate(-pos/180*Math.PI);
+	}
+
+	// Red arc
+	Arc(270-limit,270, -radius/8, radius/4, "#FF0000");
+	// Green arc
+	Arc(270,270+limit, -radius/8, radius/4, "#00FF00");
+	// Main Circle
+	Arc(0,360,0, radius/30, "#000000");
+	// Gauge ticks
+	for (x=0; x<360; x+=10) {
+			if (Math.round(x/30) == x/30) {
+					Arc(x-1, x+1, -radius/12, radius/6, "#000000")
+			} else {
+					Arc(x-1, x+1, -radius/32, radius/16, "#000000")
+			}
+	}
+
+	// Heading bug
+	bearingTrue = getValue('navigation.courseRhumbline.nextPoint.bearingTrue', signalkData)
+	if (bearingTrue) {
+		headingTrue = getValue('navigation.headingTrue', signalkData)
+		if (headingTrue) {
+			bearingTrue = bearingTrue *180/Math.PI;
+			drawBug (ctx, bearingTrue - headingTrue);
+		}
+	}
+
+	// Get data
+	angleTrue = getValue('environment.wind.angleTrueWater', signalkData)	
+	angleApparent = getValue('environment.wind.angleApparent', signalkData)
+	speedTrue = getValue('environment.wind.speedTrue', signalkData)	
+	speedApparent = getValue('environment.wind.speedApparent', signalkData)
+	
+	// Draw the hands 
+	if (angleTrue) {
+		drawHand(ctx, angleTrue, radius, "#0000FF")
+	}
+	if (angleApparent) {
+		drawHand(ctx, angleApparent, radius, "#C87800")
+	}
+
+	// Write the speeds
+	ctx.font = radius*0.20 + "px Verdana";
+	ctx.textBaseline="top";
+	ctx.textAlign="center";
+
+	if (speedApparent) {
+		ctx.fillText(speedApparent + " kts", 0, radius * 0.1);
+	}
+	ctx.fillStyle = "#0000FF";
+	if (speedTrue) {
+		ctx.fillText(speedTrue + " kts", 0, radius * 0.3);
+	}
+
+}
+
+
 function httpGetAsync(theUrl, callback) {
 	// get a file through HTTP
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
-    }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-    xmlHttp.send(null);
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.onreadystatechange = function() { 
+		if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+			callback(xmlHttp.responseText);
+	}
+	xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+	xmlHttp.send(null);
 }
 
 
@@ -206,7 +316,7 @@ function onSchema(responseText) {
 					}) 
 					elements = elements.join(".");   // stick it together again
 					if (key == 'units') 
-						units[elements] = value;    // and poke it in the dictionary
+						units[elements] = value;	// and poke it in the dictionary
 					else
 						descriptions[elements] = value
 					//console.log(elements + " (" + value + ")");
@@ -262,10 +372,14 @@ ws.onmessage = function(event) {
 			}
 			
 			// present the updated dictionary to the screen
-			if (presentation == 'table') 
-				printSignalkTable(signalkData);
-			else
-				printSignalkDisplay(signalkData);
+			switch (presentation) {
+				case 'table': 
+					printSignalkTable(signalkData); break;
+				case 'display':
+					printSignalkDisplay(signalkData); break;
+				case 'gauge':
+					printSignalkGauge(signalkData); break;
+			}
 		} 
 	}
 }
