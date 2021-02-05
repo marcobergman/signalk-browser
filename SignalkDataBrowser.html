@@ -30,7 +30,10 @@
 // Marco Bergman 2021
 // Configure your signalk url:port below, like openplotter.pypilot.org:3000 or 10.10.10.1:3000
 //
-var mySignalkURL = "192.168.178.37:3000"
+var mySignalkURL = "10.10.10.1:3000";
+var updatesPerSecond = 1;  // refresh rate
+// end user config
+
 
 var displayDiv = document.getElementById('display');
 var dataDiv = document.getElementById('data');
@@ -78,17 +81,19 @@ function getKey(key, signalkData) {
 		else
 			// show complex values as json
 			value = JSON.stringify(myRow['value']);
-			
+
 		// convert odd units
 		if (unit == 'rad') {
 			value = Math.round (value / Math.PI * 180, 0);
 			unit = 'deg';
 		}
 		if (unit == 'm/s') {
-			value = (value * 3600 / 1852).toFixed(1);
+			value = (value * 3600 / 1852)
+			precision = (value >= 10 ? 0 : 1)
+			value = value.toFixed(precision);
 			unit = 'kts';
 		}
-		if (unit == 'm') {
+		if (unit == 'm' && ! path.includes("environment.depth")) {
 			value = (value / 1852).toFixed(2);
 			unit = 'NM';
 		}
@@ -97,20 +102,19 @@ function getKey(key, signalkData) {
 					unit = '°C';
 		}
 	}
-	catch {
+	catch (error) {
 		return {}
 	}
-	
-	return {path, unit, value, timestamp, source, stale}
+
+	return {path:path, unit:unit, value:value, timestamp:timestamp, source:source, stale:stale}
 }
 
 
 function getValue(key, signalkData) {
 	// Get only the value of a key
-	let {path, unit, value, timestamp, source, stale} 
-		= getKey(key, signalkData);
-	if (! stale)
-		return value;
+	item = getKey(key, signalkData);
+	if (! item.stale)
+		return item.value;
 	else
 		return null;
 }
@@ -122,11 +126,11 @@ function formatTimestamp(timestamp) {
 	var hour = date.getHours();
 	var min = date.getMinutes();
 	var sec = date.getSeconds();
-	
+
 	hour = (hour < 10 ? "0" : "") + hour;
 	min = (min < 10 ? "0" : "") + min;
 	sec = (sec < 10 ? "0" : "") + sec;
-	
+
 	return hour + ":" + min + ":" + sec;
 }
 
@@ -136,20 +140,20 @@ function printSignalkTable(signalkData) {
 	var result = "<table border=0 width='100%'>";
 	// sort the table first
 	signalkData = sortDictionary(signalkData);
-	
+
 	//logDiv.innerHTML = JSON.stringify(signalkData, null, 2);
 
 	for (key in signalkData) {
-		
-		let {path, unit, value, timestamp, source, stale} = getKey(key, signalkData)
-		
-		if (path != key) {
+
+		item = getKey(key, signalkData)
+
+		if (item.path != key) {
 			result += "<tr>";
-			result += "<td><a title='" + descriptions[path] + "'>" + path + "</a></td>";
-			result += "<td>" + (stale ? "<strike>" : "") + value + "</td>";
-			result += "<td>" + unit + "</td>";
-			result += "<td>" + source + "</td>";
-			result += "<td>" + formatTimestamp(timestamp) + "</td>";
+			result += "<td><a title='" + descriptions[item.path] + "'>" + item.path + "</a></td>";
+			result += "<td>" + (item.stale ? "<strike>" : "") + item.value + "</td>";
+			result += "<td>" + item.unit + "</td>";
+			result += "<td>" + item.source + "</td>";
+			result += "<td>" + formatTimestamp(item.timestamp) + "</td>";
 			result += "</tr>";
 		}
 	}
@@ -160,15 +164,15 @@ function printSignalkTable(signalkData) {
 function printSignalkDisplay(signalkData) {
 	// print the contents of a dictionary in the form of an HTML table
 	function printCell (key, label) {
-		let {path, unit, value, timestamp, source, stale} = getKey(key, signalkData)
-		
+		item = getKey(key, signalkData)
+
 		result += "<td><table border=0 width='100%'>";
-		result += "<tr id='displayLabel'><td><a title='" + descriptions[path] + "'>" + label + "</a></td>";
-		result += "<tr id='displayValue'><td>" + (stale ? "<strike> " : " ") + value + " </td>";
-		result += "<tr id='displayUnit'><td>" + unit + "</td>";
+		result += "<tr id='displayLabel'><td><a title='" + descriptions[item.path] + "'>" + label + "</a></td>";
+		result += "<tr id='displayValue'><td>" + (item.stale ? "<strike> " : " ") + item.value + " </td>";
+		result += "<tr id='displayUnit'><td>" + item.unit + "</td>";
 		result += "</table></td>";
 	}
-	
+
 	var result = "<table border=1 width='300'>";
 	result += "<tr>";
 	printCell('navigation.headingTrue', 'HDG');
@@ -192,13 +196,13 @@ function printSignalkDisplay(signalkData) {
 
 
 function printSignalkGauge(signalkData) {
-	displayDiv.innerHTML = '<canvas id="myCanvas" width="900" height="900"></canvas>';
+	displayDiv.innerHTML = '<canvas id="myCanvas" width="900" height="900" onclick="presentation=\'display\';" ontouchstart="presentation=\'display\';"></canvas>';
 	var limit = 45;
 	var canvas = document.getElementById("myCanvas");
 	var ctx = canvas.getContext("2d");
 	var radius = canvas.width / 2;
 	ctx.translate(radius, radius);
-	radius = radius * 0.90
+	radius = radius * 0.95
 
 	function Arc(from, to, offset, lineWidth, strokeStyle){
 		ctx.beginPath();
@@ -256,12 +260,12 @@ function printSignalkGauge(signalkData) {
 	}
 
 	// Get data
-	angleTrue = getValue('environment.wind.angleTrueWater', signalkData)	
+	angleTrue = getValue('environment.wind.angleTrueWater', signalkData)
 	angleApparent = getValue('environment.wind.angleApparent', signalkData)
-	speedTrue = getValue('environment.wind.speedTrue', signalkData)	
+	speedTrue = getValue('environment.wind.speedTrue', signalkData)
 	speedApparent = getValue('environment.wind.speedApparent', signalkData)
-	
-	// Draw the hands 
+
+	// Draw the hands
 	if (angleTrue) {
 		drawHand(ctx, angleTrue, radius, "#0000FF")
 	}
@@ -288,11 +292,11 @@ function printSignalkGauge(signalkData) {
 function httpGetAsync(theUrl, callback) {
 	// get a file through HTTP
 	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.onreadystatechange = function() { 
+	xmlHttp.onreadystatechange = function() {
 		if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
 			callback(xmlHttp.responseText);
 	}
-	xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+	xmlHttp.open("GET", theUrl, true); // true for asynchronous
 	xmlHttp.send(null);
 }
 
@@ -308,18 +312,18 @@ function onSchema(responseText) {
 	function traverse(jsonObj, path) {
 		// traverse the schema and store the units per path in the dictionary called 'units'
 		if (jsonObj && typeof jsonObj == "object") {
-			Object.entries(jsonObj).forEach(([key, value]) => {
+			Object.keys(jsonObj).forEach(function(key) { // this line thus adapted to support ES5
+				value=jsonObj[key];
 				if (key == 'units' || key == 'description') {
 					elements = path.split(".").splice(1); // split it up
 					elements = elements.filter(function(value, index, arr){
 						return (value != "meta" && value != "properties");   // cut out some elements
-					}) 
+					})
 					elements = elements.join(".");   // stick it together again
-					if (key == 'units') 
+					if (key == 'units')
 						units[elements] = value;	// and poke it in the dictionary
 					else
 						descriptions[elements] = value
-					//console.log(elements + " (" + value + ")");
 				}
 				else {
 					traverse(value, path + "." + key);
@@ -327,7 +331,7 @@ function onSchema(responseText) {
 			});
 		}
 	}
-	
+
 	traverse (schema, "")
 	//logDiv.innerHTML = JSON.stringify(units, null, 2) + JSON.stringify(descriptions, null, 2);
 }
@@ -344,20 +348,21 @@ ws.onclose = function() {
 }
 
 var signalkData = {};  // holds the signalk data
+var lastUpdate = Date.now();
 
 ws.onmessage = function(event) {
 	json = JSON.parse(event.data);
 	//logDiv.innerHTML = JSON.stringify(json, null, 2);
-  
+
 	for (var key in json) {
 		if (key == "updates" && json[key][0]['$source'] != 'defaults') {
 			timestamp = Date.parse(json[key][0]['timestamp']);
 			source = json[key][0]['$source'];
-			if (json[key][0]['$source'] != 'derived-data') {  
+			if (json[key][0]['$source'] != 'derived-data') {
 				try {
 					source += " (" + json[key][0]['source']["sentence"] + ")";
 				}
-				catch {
+				catch (error) {
 					//logDiv.innerHTML = JSON.stringify(json, null, 2);
 				}
 			}
@@ -370,17 +375,21 @@ ws.onmessage = function(event) {
 				signalkData[path + source] = entry;  // store in the dictionary
 				signalkData[path] = entry;  // store in the dictionary
 			}
-			
-			// present the updated dictionary to the screen
-			switch (presentation) {
-				case 'table': 
-					printSignalkTable(signalkData); break;
-				case 'display':
-					printSignalkDisplay(signalkData); break;
-				case 'gauge':
-					printSignalkGauge(signalkData); break;
+
+			// present the updated dictionary to the screen at the specified refresh rate
+			elapsed = Date.now() - lastUpdate;
+			if (elapsed > 1000/updatesPerSecond) {
+				switch (presentation) {
+					case 'table':
+						printSignalkTable(signalkData); break;
+					case 'display':
+						printSignalkDisplay(signalkData); break;
+					case 'gauge':
+						printSignalkGauge(signalkData); break;
+				}
+				lastUpdate = Date.now();
 			}
-		} 
+		}
 	}
 }
 
