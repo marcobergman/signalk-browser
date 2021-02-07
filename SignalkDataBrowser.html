@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html style="margin:0; padding:0;">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>SignalK Data Browser</title>
   <style>
@@ -13,15 +14,9 @@
   </style>
 </head>
 <body>
-  <pre>
 	<div id="display"/>
-  </pre>
-  <pre>
 	<div id="data"/>
-  </pre>
-  <pre>
 	<div id="log"/>
-  </pre>
 </body>
 
 <script>
@@ -205,11 +200,15 @@ function printSignalkDisplay(signalkData) {
 
 
 function printSignalkGauge(signalkData) {
-	displayDiv.innerHTML = '<canvas id="myCanvas" width="900" height="900" onclick="presentation=\'display\';" ontouchstart="presentation=\'display\';"></canvas>';
+	displayDiv.innerHTML = '<canvas id="myCanvas" onclick="presentation=\'display\';" ontouchstart="presentation=\'display\';"></canvas>';
 	var limit = 45;
 	var canvas = document.getElementById("myCanvas");
+        canvas.width = document.documentElement.clientWidth;
+        canvas.height = document.documentElement.clientHeight;
 	var ctx = canvas.getContext("2d");
-	var radius = canvas.width / 2;
+	var radius = document.documentElement.clientWidth / 2;
+	if (document.documentElement.clientHeight <document.documentElement.clientWidth)
+		radius = document.documentElement.clientHeight / 2;
 	ctx.translate(radius, radius);
 	radius = radius * 0.95
 
