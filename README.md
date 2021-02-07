@@ -3,7 +3,7 @@
 One-file, html and javascript based tool that presents the 'self' data from a local SignalK engine. It converts units to nautical units, and it updates automatically.
 
 Usage
-- Adjust the variable mySignalkURL to reflect the IP of your SignalK server. 
+- In the file SignalkDataBrowser.html, adjust the variable mySignalkURL to reflect the IP of your SignalK server. The default is right for a typical Openplotter installation.
 ```
 //
 // Configure your signalk url:port below, like openplotter.myboat.local:3000 or 10.10.10.1:3000
