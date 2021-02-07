@@ -6,7 +6,7 @@ Usage
 - Adjust the variable mySignalkURL to reflect the IP of your SignalK server. 
 ```
 //
-// Configure your signalk url:port below, like openplotter.pypilot.org:3000 or 10.10.10.1:3000
+// Configure your signalk url:port below, like openplotter.myboat.local:3000 or 10.10.10.1:3000
 //
 var mySignalkURL = "10.10.10.1:3000"
 
