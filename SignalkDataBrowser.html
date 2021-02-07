@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="margin:0; padding:0;">
+<html>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,8 +7,9 @@
 
   <title>SignalK Data Browser</title>
   <style>
-	#data tr:nth-child(odd) { background-color: #f2f2f2; }
-	#displayLabel td {vertical-align: top;; font-weight: bold}
+	* {font-family: Consolas}
+	#data tr:nth-child(odd) { background-color: #f2f2f2;}
+	#displayLabel td {vertical-align: top; font-weight: bold}
 	#displayValue td {text-align: center; vertical-align: middle; font-size: xx-large; font-weight: bold}
 	#displayUnit td {text-align: center; vertical-align: middle;}
   </style>
@@ -109,7 +110,6 @@ function getKey(key, signalkData) {
 	catch (error) {
 		return {}
 	}
-
 	return {path:path, unit:unit, value:value, timestamp:timestamp, source:source, stale:stale}
 }
 
@@ -170,14 +170,14 @@ function printSignalkDisplay(signalkData) {
 	function printCell (key, label) {
 		item = getKey(key, signalkData)
 
-		result += "<td><table border=0 width='100%'>";
+		result += "<td><table border=0 width='500'>";
 		result += "<tr id='displayLabel'><td><a title='" + descriptions[item.path] + "'>" + label + "</a></td>";
 		result += "<tr id='displayValue'><td>" + (item.stale ? "<strike> " : " ") + item.value + " </td>";
 		result += "<tr id='displayUnit'><td>" + item.unit + "</td>";
 		result += "</table></td>";
 	}
 
-	var result = "<table border=1 width='300'>";
+	var result = "<table border=1 width='100%'>";
 	result += "<tr>";
 	printCell('navigation.headingTrue', 'HDG');
 	printCell('navigation.courseOverGroundTrue', 'COG');
@@ -193,22 +193,22 @@ function printSignalkDisplay(signalkData) {
 	result += "</tr><tr>";
 	printCell('environment.wind.directionTrue', 'TWD');
 	i = ~~(Date.now()/1000) % (spinner.length)
-	result += ("<td align=center><h1>" + spinner[i] + "</td>")
+	result += ('<td align=center onclick="presentation=\'gauge\';" ontouchstart="presentation=\'gauge\';"><h1>' + spinner[i] + '</td>')
 	result += "</tr>";
 	displayDiv.innerHTML = result + "</table>";
 }
 
 
 function printSignalkGauge(signalkData) {
-	displayDiv.innerHTML = '<canvas id="myCanvas" onclick="presentation=\'display\';" ontouchstart="presentation=\'display\';"></canvas>';
+	displayDiv.innerHTML = '<canvas id="myCanvas" width="100%" onclick="presentation=\'display\';" ontouchstart="presentation=\'display\';"></canvas>';
 	var limit = 45;
 	var canvas = document.getElementById("myCanvas");
-        canvas.width = document.documentElement.clientWidth;
-        canvas.height = document.documentElement.clientHeight;
+        canvas.width = document.documentElement.clientWidth-40;
+        canvas.height = document.documentElement.clientHeight-40;
 	var ctx = canvas.getContext("2d");
-	var radius = document.documentElement.clientWidth / 2;
-	if (document.documentElement.clientHeight <document.documentElement.clientWidth)
-		radius = document.documentElement.clientHeight / 2;
+	var radius = canvas.width / 2;
+	if (canvas.height < canvas.width)
+		radius = canvas.height / 2;
 	ctx.translate(radius, radius);
 	radius = radius * 0.95
 
@@ -344,7 +344,7 @@ function onSchema(responseText) {
 	}
 
 	traverse (schema, "")
-	//logDiv.innerHTML = JSON.stringify(units, null, 2) + JSON.stringify(descriptions, null, 2);
+	logDiv.innerHTML = JSON.stringify(units, null, 2) + JSON.stringify(descriptions, null, 2);
 }
 
 
