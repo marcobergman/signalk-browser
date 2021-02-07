@@ -30,7 +30,16 @@
 // Marco Bergman 2021
 // Configure your signalk url:port below, like openplotter.pypilot.org:3000 or 10.10.10.1:3000
 //
-var mySignalkURL = "10.10.10.1:3000";
+var mySignalkURL = "http://192.168.178.37:3000";
+var vessel = "self";
+var timeOut = 5; // seconds before data is marked 'stale'
+
+/*
+var mySignalkURL = "https://cloud.signalk.org:443";
+var vessel = "urn:mrn:imo:mmsi:244150473";
+var timeOut = 60; // seconds before data is marked 'stale'
+*/
+
 var updatesPerSecond = 1;  // refresh rate
 // end user config
 
@@ -73,7 +82,7 @@ function getKey(key, signalkData) {
 		unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
 		timestamp = myRow['timestamp'];
 		source = myRow['source'];
-		stale = Date.now() - timestamp > 5000 ? true : false;
+		stale = Date.now() - timestamp > 1000 * timeOut ? true : false;
 
 		// get the value
 		if (typeof(myRow['value']) != 'object')
@@ -147,7 +156,7 @@ function printSignalkTable(signalkData) {
 
 		item = getKey(key, signalkData)
 
-		if (item.path != key) {
+		if (item.path != key) { // only lines that have a source in the key
 			result += "<tr>";
 			result += "<td><a title='" + descriptions[item.path] + "'>" + item.path + "</a></td>";
 			result += "<td>" + (item.stale ? "<strike>" : "") + item.value + "</td>";
@@ -304,6 +313,9 @@ function httpGetAsync(theUrl, callback) {
 var units = {}  // holds (path, units) tuplets, derived from the schema definition
 var descriptions = {}  // holds (path, description) tuplets, derived from the schema definition
 
+// get the schema definition file and let onSchema() do what needs to be done with it
+httpGetAsync(mySignalkURL + "/signalk/v1/api/vessels/" + vessel + "/", onSchema);
+
 function onSchema(responseText) {
 	// respond to the reception of a schema file
 	schema = JSON.parse(responseText);
@@ -337,12 +349,11 @@ function onSchema(responseText) {
 }
 
 
-// get the schema definition file and let onSchema() do what needs to be done with it
-httpGetAsync("http://" + mySignalkURL + "/signalk/v1/api/vessels/self/", onSchema);
-
-
 // set up the stream of signalk deltas
-var ws = new WebSocket("ws://" + mySignalkURL + "/signalk/v1/stream?subscribe=self");
+var wsURL = mySignalkURL.replace("http", "ws") + "/signalk/v1/stream?subscribe=none"
+var ws = new WebSocket(wsURL);
+var subscriptionMessage = JSON.stringify({"context": "vessels." + vessel, "subscribe": [{"path": "*"}]});
+ws.onopen = function(event) {ws.send(subscriptionMessage)}
 ws.onclose = function() {
   console.log("ws close");
 }
@@ -351,6 +362,7 @@ var signalkData = {};  // holds the signalk data
 var lastUpdate = Date.now();
 
 ws.onmessage = function(event) {
+	// Process an incoming signalk update message
 	json = JSON.parse(event.data);
 	//logDiv.innerHTML = JSON.stringify(json, null, 2);
 
@@ -358,22 +370,27 @@ ws.onmessage = function(event) {
 		if (key == "updates" && json[key][0]['$source'] != 'defaults') {
 			timestamp = Date.parse(json[key][0]['timestamp']);
 			source = json[key][0]['$source'];
+			
+			// Attach sentence to source if available, e.g. " (RMB)"
 			if (json[key][0]['$source'] != 'derived-data') {
 				try {
-					source += " (" + json[key][0]['source']["sentence"] + ")";
+					source += " (" + json[key][0]['source']['sentence'] + ")";
 				}
-				catch (error) {
-					//logDiv.innerHTML = JSON.stringify(json, null, 2);
-				}
+				catch (error) {}
 			}
-			values = json[key][0]['values'];
+			
 			// loop through all updated paths and store them in the signalk dictionary
+			//  - one version with the source in the key (multiple values per path, for the table)
+			//  - one version with only path in the key (one value per path, might flipflop)
+			values = json[key][0]['values'];
 			for (tuple in values) {
 				path = values[tuple]['path'];
 				value = values[tuple]['value'];
 				entry = {timestamp, source, path, value};
-				signalkData[path + source] = entry;  // store in the dictionary
-				signalkData[path] = entry;  // store in the dictionary
+				
+				// store in the dictionary
+				signalkData[path + source] = entry;  
+				signalkData[path] = entry;  
 			}
 
 			// present the updated dictionary to the screen at the specified refresh rate
