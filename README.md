@@ -19,3 +19,9 @@ Then, open the file in your browser. You can also copy it to the public director
 With ?presentation=display, it shows a selection of values in a way that does well on mobile devices:
 
 ![example](example2.png)
+
+With ?presentation=gauge, it shows a wind gauge with apparent and true wind, if available. Also, it features an aviation-syle 'heading bug', that points to the next waypoint, and distance, if an active route is provided:
+
+![example](example3.png)
+
+By default, a 5 second timeout governs data items to be marked 'stale', striking the values out in the list, or not showing then in the gauge.
