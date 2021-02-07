@@ -266,6 +266,7 @@ function printSignalkGauge(signalkData) {
 			drawBug (ctx, bearingTrue - headingTrue);
 		}
 	}
+	distance = getValue('navigation.courseRhumbline.nextPoint.distance', signalkData)
 
 	// Get data
 	angleTrue = getValue('environment.wind.angleTrueWater', signalkData)
@@ -292,6 +293,11 @@ function printSignalkGauge(signalkData) {
 	ctx.fillStyle = "#0000FF";
 	if (speedTrue) {
 		ctx.fillText(speedTrue + " kts", 0, radius * 0.3);
+	}
+
+	ctx.fillStyle="orange";
+	if (distance) {
+		ctx.fillText((distance/1852).toFixed(1) + " NM", 0, radius * -0.6);
 	}
 
 }
