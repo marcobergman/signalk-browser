@@ -33,7 +33,7 @@
 
 <script>
 // Defaults:
-var myServerURL = location.protocol + "://" + location.host;
+var myServerURL = location.protocol + "//" + location.host;
 var vessel = "self";
 var timeOut = 5; // seconds before data is marked 'stale'
 
@@ -53,7 +53,6 @@ var timeOut = 60; // seconds before data is marked 'stale'
 var updatesPerSecond = 1;  // refresh rate
 // end user config
 
-console.log("location.host=", location.host == (""));
 var displayDiv = document.getElementById('display');
 var dataDiv = document.getElementById('data');
 var logDiv = document.getElementById('log');
