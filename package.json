@@ -1,0 +1,23 @@
+{
+  "name": "signalk-browser",
+  "version": "1.0.0",
+  "description": "Some displays presenting SignalK nautical data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": [
+    "signalk-node-server-plugin",
+    "signalk-webapp"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcobergman/signalk-browser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marcobergman/signalk-browser/issues"
+  },
+  "homepage": "https://github.com/marcobergman/signalk-browser#readme"
+}
