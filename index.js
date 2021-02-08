@@ -2,8 +2,8 @@ module.exports = function (app) {
   var plugin = {};
 
   plugin.id = 'signalk-browser';
-  plugin.name = 'My Great Plugin';
-  plugin.description = 'Plugin that does stuff';
+  plugin.name = 'SignalK Browser';
+  plugin.description = 'Some displays presenting SignalK nautical data';
 
   plugin.start = function (options, restartPlugin) {
     // Here we put our plugin logic
