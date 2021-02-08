@@ -32,16 +32,20 @@
 </body>
 
 <script>
-
-//
-// Configure your signalk url:port below, like openplotter.pypilot.org:3000 or 10.10.10.1:3000
-//
-var mySignalkURL = "http://10.10.10.1:3000";
+// Defaults:
+var myServerURL = location.protocol + "://" + location.host;
 var vessel = "self";
 var timeOut = 5; // seconds before data is marked 'stale'
 
+//
+// Configure your signalk url:port below, like openplotter.myboat.local:3000 or 10.10.10.1:3000
+//
 /*
-var mySignalkURL = "https://cloud.signalk.org:443";
+myServerURL = "http://10.10.10.1:3000";
+*/
+
+/*
+var myServerURL = "https://cloud.signalk.org:443";
 var vessel = "urn:mrn:imo:mmsi:244150473";
 var timeOut = 60; // seconds before data is marked 'stale'
 */
@@ -49,7 +53,7 @@ var timeOut = 60; // seconds before data is marked 'stale'
 var updatesPerSecond = 1;  // refresh rate
 // end user config
 
-
+console.log("location.host=", location.host == (""));
 var displayDiv = document.getElementById('display');
 var dataDiv = document.getElementById('data');
 var logDiv = document.getElementById('log');
@@ -329,7 +333,7 @@ var units = {}  // holds (path, units) tuplets, derived from the schema definiti
 var descriptions = {}  // holds (path, description) tuplets, derived from the schema definition
 
 // get the schema definition file and let onSchema() do what needs to be done with it
-httpGetAsync(mySignalkURL + "/signalk/v1/api/vessels/" + vessel + "/", onSchema);
+httpGetAsync(myServerURL + "/signalk/v1/api/vessels/" + vessel + "/", onSchema);
 
 function onSchema(responseText) {
 	// respond to the reception of a schema file
@@ -365,7 +369,7 @@ function onSchema(responseText) {
 
 
 // set up the stream of signalk deltas
-var wsURL = mySignalkURL.replace("http", "ws") + "/signalk/v1/stream?subscribe=none"
+var wsURL = myServerURL.replace("http", "ws") + "/signalk/v1/stream?subscribe=none"
 var ws = new WebSocket(wsURL);
 var subscriptionMessage = JSON.stringify({"context": "vessels." + vessel, "subscribe": [{"path": "*"}]});
 ws.onopen = function(event) {ws.send(subscriptionMessage)}
