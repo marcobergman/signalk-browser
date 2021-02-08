@@ -19,5 +19,6 @@
   "bugs": {
     "url": "https://github.com/marcobergman/signalk-browser/issues"
   },
-  "homepage": "https://github.com/marcobergman/signalk-browser#readme"
+  "homepage": "https://github.com/marcobergman/signalk-browser#readme",
+  "dependencies": {}
 }
