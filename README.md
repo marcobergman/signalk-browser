@@ -17,12 +17,14 @@ Then, open the file in your browser.
 
 ![example](example.png)
 
-With ?presentation=display, it shows a selection of values in a way that does well on mobile devices:
+With ?presentation=gauge, it shows a wind gauge with apparent and true wind, if available. Also, it features an aviation-syle 'heading bug', that points to the next waypoint, and distance, if an active route is provided:
 
 ![example](example2.png)
 
-With ?presentation=gauge, it shows a wind gauge with apparent and true wind, if available. Also, it features an aviation-syle 'heading bug', that points to the next waypoint, and distance, if an active route is provided:
+With ?presentation=display, it shows a selection of values in a way that does well on mobile devices:
 
 ![example](example3.png)
+
+With ?presentation=both, it shows both wind gauge and information display, oriented according the the device orientation.
 
 By default, a 5 second timeout governs data items to be marked 'stale', striking the values out in the list, or not showing then in the gauge.
