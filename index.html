@@ -190,6 +190,9 @@ function printSignalkTable(signalkData) {
 function printSignalkDisplay(signalkData) {
 	// print the contents of a dictionary in the form of an HTML table
 	var size = Math.min(document.documentElement.clientWidth-40, document.documentElement.clientHeight-40)
+	if (document.documentElement.clientWidth > document.documentElement.clientHeight)
+		size = document.documentElement.clientWidth - document.documentElement.clientHeight - 40;
+
 	function printCell (key, label) {
 		item = getKey(key, signalkData)
 
