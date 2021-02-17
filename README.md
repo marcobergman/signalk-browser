@@ -17,7 +17,7 @@ Then, open the file in your browser.
 
 ![example](example.png)
 
-With ?presentation=gauge, it shows a wind gauge with apparent and true wind, if available. Also, it features an aviation-syle 'heading bug', that points to the next waypoint, and distance, if an active route is provided:
+With ?presentation=gauge, it shows a wind gauge with apparent and true wind, if available. Also, it features an aviation-style 'heading bug', that points to the next waypoint, and distance, if an active route is provided:
 
 ![example](example2.png)
 
@@ -25,6 +25,6 @@ With ?presentation=display, it shows a selection of values in a way that does we
 
 ![example](example3.png)
 
-With ?presentation=both, it shows both wind gauge and information display, oriented according to  the device orientation. This is actually the default presentation format, when no preference is given.
+With ?presentation=both, it shows both wind gauge and information display, oriented according to the device orientation. This is actually the default presentation format, when no preference is given.
 
 By default, a 5 second timeout governs data items to be marked 'stale', striking the values out in the list, or not showing then in the gauge.
