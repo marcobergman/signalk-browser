@@ -6,8 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Marco Bergman",
+    "email": "marcobergman@gmail.com"
+  },  "license": "ISC",
   "keywords": [
     "signalk-node-server-plugin",
     "signalk-webapp"
