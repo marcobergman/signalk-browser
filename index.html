@@ -51,6 +51,29 @@ var timeOut = 60; // seconds before data is marked 'stale'
 */
 
 var updatesPerSecond = 1;  // refresh rate
+
+var displayFields = [
+	[
+		{ key: 'navigation.headingTrue', label: 'HDG' },
+		{ key: 'navigation.courseOverGroundTrue', label: 'COG' },
+	],
+	[
+		{ key: 'navigation.speedThroughWater', label: 'STW' },
+		{ key: 'navigation.speedOverGround', label: 'SOG' },
+	],
+	[
+		{ key: 'environment.wind.angleApparent', label: 'AWA' },
+		{ key: 'environment.wind.angleTrueWater', label: 'TWA' },
+	],
+	[
+		{ key: 'environment.wind.speedApparent', label: 'AWS' },
+		{ key: 'environment.wind.speedTrue', label: 'TWS' },
+	],
+	[
+		{ key: 'environment.wind.directionTrue', label: 'TWD' },
+		{ key: 'spinner' },
+	],
+];
 // end user config
 
 var displayDiv = document.getElementById('display');
@@ -200,23 +223,21 @@ function printSignalkDisplay(signalkData) {
 	}
 
 	var result = "<table border=1 width='100%'>";
-	result += "<tr>";
-	printCell('navigation.headingTrue', 'HDG');
-	printCell('navigation.courseOverGroundTrue', 'COG');
-	result += "</tr><tr>";
-	printCell('navigation.speedThroughWater', 'STW');
-	printCell('navigation.speedOverGround', 'SOG');
-	result += "</tr><tr>";
-	printCell('environment.wind.angleApparent', 'AWA');
-	printCell('environment.wind.angleTrueWater', 'TWA');
-	result += "</tr><tr>";
-	printCell('environment.wind.speedApparent', 'AWS');
-	printCell('environment.wind.speedTrue', 'TWS');
-	result += "</tr><tr>";
-	printCell('environment.wind.directionTrue', 'TWD');
-	i = ~~(Date.now()/1000) % (spinner.length)
-	result += ('<td align=center onclick="presentation=\'table\';" ontouchstart="presentation=\'table\';" style="cursor: pointer;"><h1>' + spinner[i] + '</td>')
-	result += "</tr>";
+	for(j = 0; j < displayFields.length; j++) {
+		var row = displayFields[j];
+		result += "<tr>";
+		for(k = 0; k < row.length; k++) {
+			var key = row[k].key;
+			var label = row[k].label;
+			if(key !== 'spinner') {
+				printCell(key, label);
+			} else {
+				i = ~~(Date.now()/1000) % (spinner.length);
+				result += ('<td align=center onclick="presentation=\'table\';" ontouchstart="presentation=\'table\';" style="cursor: pointer;"><h1>' + spinner[i] + '</td>');
+			}
+		}
+		result += "</tr>";
+	}
 	result += "</table>";
 	displayDiv.innerHTML = result;
 	dataDiv.innerHTML = "";
