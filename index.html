@@ -73,6 +73,13 @@ var displayFields = [
 		{ key: 'environment.wind.directionTrue', label: 'TWD' },
 		{ key: 'spinner' },
 	],
+	[
+		{ key: 'navigation.courseRhumbline.nextPoint.distance', label: 'RNG' },
+		{ key: 'navigation.courseRhumbline.nextPoint.velocityMadeGood', label: 'VMG' },
+	],
+	[
+		{ key: 'navigation.courseRhumbline.nextPoint.bearingTrue', label: 'BRG' },
+	],
 ];
 // end user config
 
@@ -125,18 +132,18 @@ function getKey(key, signalkData) {
 			value = JSON.stringify(myRow['value']);
 
 		// convert odd units
-		if (unit == 'rad') {
+		if (unit == 'rad' || path == 'navigation.courseRhumbline.nextPoint.bearingTrue') {
 			value = Math.round (value / Math.PI * 180, 0);
 			unit = 'deg';
 		}
-		if (unit == 'm/s') {
-			value = (value * 3600 / 1852)
-			precision = (value >= 10 ? 0 : 1)
+		if (unit == 'm/s' || path == 'navigation.courseRhumbline.nextPoint.velocityMadeGood') {
+			value = (value * 3600 / 1852);
+			precision = (value >= 10 ? 0 : 1);
 			value = value.toFixed(precision);
 			unit = 'kts';
 		}
-		if (unit == 'm' && ! path.includes("environment.depth")) {
-			value = (value / 1852).toFixed(2);
+		if ((unit == 'm' && ! path.includes("environment.depth")) || path.includes("navigation.courseRhumbline.nextPoint.distance")) {
+			value = (value / 1852).toFixed(1);
 			unit = 'NM';
 		}
 		if (unit == 'K') {
@@ -293,9 +300,9 @@ function printSignalkGauge(signalkData) {
 	}
 
 	// Red arc
-	Arc(270-limit,270, -radius/8, radius/4, "#FF0000");
+	Arc(270-limit,270, -radius/8, radius/4, "red");
 	// Green arc
-	Arc(270,270+limit, -radius/8, radius/4, "#00FF00");
+	Arc(270,270+limit, -radius/8, radius/4, "green");
 	// Main Circle
 	Arc(0,360,0, radius/30, "#000000");
 	// Gauge ticks
@@ -312,17 +319,17 @@ function printSignalkGauge(signalkData) {
 	if (bearingTrue) {
 		headingTrue = getValue('navigation.headingTrue', signalkData)
 		if (headingTrue) {
-			bearingTrue = bearingTrue *180/Math.PI;
 			drawBug (ctx, bearingTrue - headingTrue);
 		}
 	}
-	distance = getValue('navigation.courseRhumbline.nextPoint.distance', signalkData)
 
 	// Get data
 	angleTrue = getValue('environment.wind.angleTrueWater', signalkData)
 	angleApparent = getValue('environment.wind.angleApparent', signalkData)
 	speedTrue = getValue('environment.wind.speedTrue', signalkData)
 	speedApparent = getValue('environment.wind.speedApparent', signalkData)
+	distance = getValue('navigation.courseRhumbline.nextPoint.distance', signalkData)
+	velocityMadeGood = getValue('navigation.courseRhumbline.nextPoint.velocityMadeGood', signalkData)
 
 	// Draw the hands
 	if (angleTrue) {
@@ -347,7 +354,12 @@ function printSignalkGauge(signalkData) {
 
 	ctx.fillStyle="orange";
 	if (distance) {
-		ctx.fillText((distance/1852).toFixed(1) + " NM", 0, radius * -0.6);
+		ctx.fillText(distance + " NM", 0, radius * -0.6);
+	}
+
+	ctx.fillStyle="orange";
+	if (velocityMadeGood) {
+		ctx.fillText(velocityMadeGood + " kts", 0, radius * -0.4);
 	}
 
 }
