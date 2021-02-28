@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <!--
 //  
@@ -39,8 +40,9 @@ var timeOut = 5; // seconds before data is marked 'stale'
 
 //
 // Configure your signalk url:port below, like openplotter.myboat.local:3000 or 10.10.10.1:3000
-/*
 //
+
+/*
 myServerURL = "http://10.10.10.1:3000";
 */
 
@@ -117,43 +119,48 @@ function sortDictionary(dict) {
 function getKey(key, signalkData) {
 	// based on the name of the key, get the constituents out of the signalkData and convert if needed
 	myRow = signalkData[key];
-	try {
-		path = myRow['path']
-		unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
-		timestamp = myRow['timestamp'];
-		source = myRow['source'];
-		stale = Date.now() - timestamp > 1000 * timeOut ? true : false;
+	if (typeof(myRow) != 'undefined') {
+		try {
+			//console.log(key);
+			path = myRow['path']
+			unit = units[path];  // resolve the units from the units dictionary that was derived from the schema file
+			timestamp = myRow['timestamp'];
+			source = myRow['source'];
+			stale = Date.now() - timestamp > 1000 * timeOut ? true : false;
 
-		// get the value
-		if (typeof(myRow['value']) != 'object')
-			value = myRow['value'];
-		else
-			// show complex values as json
-			value = JSON.stringify(myRow['value']);
+			// get the value
+			if (typeof(myRow['value']) != 'object')
+				value = myRow['value'];
+			else
+				// show complex values as json
+				value = JSON.stringify(myRow['value']);
 
-		// convert odd units
-		if (unit == 'rad' || path == 'navigation.courseRhumbline.nextPoint.bearingTrue') {
-			value = Math.round (value / Math.PI * 180, 0);
-			unit = 'deg';
+			// convert odd units
+			if (unit == 'rad' || path == 'navigation.courseRhumbline.nextPoint.bearingTrue') {
+				value = Math.round (value / Math.PI * 180, 0);
+				unit = 'deg';
+			}
+			if (unit == 'm/s' || path == 'navigation.courseRhumbline.nextPoint.velocityMadeGood') {
+				value = (value * 3600 / 1852);
+				precision = (value >= 10 ? 0 : 1);
+				value = value.toFixed(precision);
+				unit = 'kts';
+			}
+			if ((unit == 'm' && ! path.includes("environment.depth")) || path.includes("navigation.courseRhumbline.nextPoint.distance")) {
+				value = (value / 1852).toFixed(1);
+				unit = 'NM';
+			}
+			if (unit == 'K') {
+				value = (value - 273.15).toFixed(2);
+				unit = '°C';
+			}
 		}
-		if (unit == 'm/s' || path == 'navigation.courseRhumbline.nextPoint.velocityMadeGood') {
-			value = (value * 3600 / 1852);
-			precision = (value >= 10 ? 0 : 1);
-			value = value.toFixed(precision);
-			unit = 'kts';
-		}
-		if ((unit == 'm' && ! path.includes("environment.depth")) || path.includes("navigation.courseRhumbline.nextPoint.distance")) {
-			value = (value / 1852).toFixed(1);
-			unit = 'NM';
-		}
-		if (unit == 'K') {
-					value = (value - 273.15).toFixed(2);
-					unit = '°C';
+		catch (error) {
+			return {}
 		}
 	}
-	catch (error) {
+	else
 		return {}
-	}
 	return {path:path, unit:unit, value:value, timestamp:timestamp, source:source, stale:stale}
 }
 
@@ -221,7 +228,7 @@ function printSignalkDisplay(signalkData) {
 	var size = Math.min(document.documentElement.clientWidth-40, document.documentElement.clientHeight-40)
 	function printCell (key, label) {
 		item = getKey(key, signalkData);
-		if (item.value) { // don't print undefined
+		if (typeof(item.value) != 'undefined') { // don't print undefined
 			result += "<td><table border=0 width='" + size/2 + "px'>";
 			result += "<tr id='displayLabel'><td><a title='" + descriptions[item.path] + "'>" + label + "</a></td>";
 			result += "<tr id='displayValue'><td>" + (item.stale ? "<strike> " : " ") + item.value + " </td>";
