@@ -4,7 +4,7 @@ One-file tool that presents the 'self' data from a local SignalK engine. It conv
 
 Usage
 - When installed as an NPM package within SignalK, install the package and restart the server. The Package will show up under Webapps.
-- For standalone usage, in the file signalk-browser.html, adjust the variable mySignalkURL to reflect the IP of your SignalK server. The default is right for a typical Openplotter installation.
+- For standalone usage, in the file index.html, adjust the variable mySignalkURL to reflect the IP of your SignalK server. The default is right for a typical Openplotter installation.
 ```
 //
 // Configure your signalk url:port below, like openplotter.myboat.local:3000 or 10.10.10.1:3000
@@ -13,11 +13,11 @@ var mySignalkURL = "10.10.10.1:3000"
 
 ```
 
-Then, open the file in your browser.
+Then, open the file in your browser. With ?presentation=table, it shows all 'paths' from all sources in signalk. It strikes out paths that are stale (by default 5 seconds or older). Note that when there are multiple paths and the SignalK Source Priorities have been set, the lower priority paths are staled out here.
 
 ![example](example.png)
 
-With ?presentation=gauge, it shows a wind gauge with apparent and true wind, if available. Also, it features an aviation-style 'heading bug', that points to the next waypoint, and distance, if an active route is provided:
+With ?presentation=gauge, it shows a wind gauge with apparent and true wind, if available. Also, it features an aviation-style 'heading bug', that points to the next waypoint, and distance and VMG, if an active route is provided:
 
 ![example](example2.png)
 
