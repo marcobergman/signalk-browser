@@ -37,11 +37,10 @@
 var myServerURL = location.protocol + "//" + location.host;
 var vessel = "self";
 var timeOut = 5; // seconds before data is marked 'stale'
-
+var dampingFactor = 0.005;
+var directionTrueDampened = 0;
 //
 // Configure your signalk url:port below, like openplotter.myboat.local:3000 or 10.10.10.1:3000
-//
-
 /*
 myServerURL = "http://10.10.10.1:3000";
 */
@@ -73,7 +72,7 @@ var displayFields = [
 	],
 	[
 		{ key: 'environment.wind.directionTrue', label: 'TWD' },
-		{ key: 'spinner' },
+		{ key: 'environment.wind.directionTrueDampened', label: 'TWDM' },
 	],
 	[
 		{ key: 'navigation.courseRhumbline.nextPoint.distance', label: 'RNG' },
@@ -81,6 +80,7 @@ var displayFields = [
 	],
 	[
 		{ key: 'navigation.courseRhumbline.nextPoint.bearingTrue', label: 'BRG' },
+		{ key: 'spinner' },
 	],
 ];
 // end user config
@@ -387,6 +387,7 @@ function httpGetAsync(theUrl, callback) {
 
 var units = {}  // holds (path, units) tuplets, derived from the schema definition
 var descriptions = {}  // holds (path, description) tuplets, derived from the schema definition
+units['environment.wind.directionTrueDampened'] = 'rad';
 
 // get the schema definition file and let onSchema() do what needs to be done with it
 httpGetAsync(myServerURL + "/signalk/v1/api/vessels/" + vessel + "/", onSchema);
@@ -466,6 +467,15 @@ ws.onmessage = function(event) {
 				// store in the dictionary
 				signalkData[path + source] = entry;  
 				signalkData[path] = entry;  
+				
+				if (path == 'environment.wind.directionTrue') {
+					if (directionTrueDampened == 0) directionTrueDampened = value;
+					directionTrueDampened = (1-dampingFactor) * directionTrueDampened + dampingFactor * value;
+					path = 'environment.wind.directionTrueDampened';
+					value = directionTrueDampened;
+					entry = {timestamp, source, path, value};
+					signalkData[path] = entry;  
+				}
 			}
 
 			// present the updated dictionary to the screen at the specified refresh rate
