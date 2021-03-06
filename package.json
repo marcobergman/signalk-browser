@@ -1,6 +1,6 @@
 {
   "name": "signalk-browser",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "description": "Some displays presenting SignalK nautical data",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,8 @@
   },  "license": "ISC",
   "keywords": [
     "signalk-node-server-plugin",
-    "signalk-webapp"
+    "signalk-webapp",
+    "signalk-category-web-instruments"
   ],
   "repository": {
     "type": "git",

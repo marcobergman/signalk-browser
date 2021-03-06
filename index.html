@@ -39,6 +39,7 @@ var vessel = "self";
 var timeOut = 5; // seconds before data is marked 'stale'
 var dampingFactor = 0.005;
 var directionTrueDampened = 0;
+var speedTrueDampened = 0;
 //
 // Configure your signalk url:port below, like openplotter.myboat.local:3000 or 10.10.10.1:3000
 /*
@@ -80,7 +81,9 @@ var displayFields = [
 	],
 	[
 		{ key: 'navigation.courseRhumbline.nextPoint.bearingTrue', label: 'BRG' },
-		{ key: 'spinner' },
+		{ key: 'environment.wind.speedTrueDampened', label: 'TWSD' },
+		{ key: 'environment.wind.speedTrueDampenedBft', label: 'TWSB' },
+//		{ key: 'spinner' },
 	],
 ];
 // end user config
@@ -209,6 +212,29 @@ function formatTimestamp(timestamp) {
 	return hour + ":" + min + ":" + sec;
 }
 
+
+function format_Bft(windSpeed) {
+	x=Math.round(windSpeed* 3600 / 1852);
+	if (x == 0) return ("0");
+	if (x >= 1 && x <= 3) return ("1");
+	if (x >= 4 && x <= 6) return ("2");
+	if (x >= 7 && x <= 10) return ("3");
+	if (x == 11) return ("4-");
+	if (x == 12) return ("4-");
+	if (x == 13) return ("4");
+	if (x == 14) return ("4");
+	if (x == 15) return ("4+");
+	if (x == 16) return ("4+");
+	if (x == 17) return ("5-");
+	if (x == 18) return ("5");
+	if (x == 19) return ("5");
+	if (x == 20) return ("5");
+	if (x == 21) return ("5+");
+	if (x == 22) return ("6-");
+	if (x == 23) return ("6-");
+	if (x == 24) return ("6");
+	if (x > 24) return ("7 or more");
+}
 
 function printSignalkTable(signalkData) {
 	// print the contents of a dictionary in the form of an HTML table
@@ -447,6 +473,8 @@ function httpGetAsync(theUrl, callback) {
 var units = {}  // holds (path, units) tuplets, derived from the schema definition
 var descriptions = {}  // holds (path, description) tuplets, derived from the schema definition
 units['environment.wind.directionTrueDampened'] = 'rad';
+units['environment.wind.speedTrueDampened'] = 'm/s';
+units['environment.wind.speedTrueDampenedBft'] = 'Bft';
 
 // get the schema definition file and let onSchema() do what needs to be done with it
 httpGetAsync(myServerURL + "/signalk/v1/api/vessels/" + vessel + "/", onSchema);
@@ -529,12 +557,27 @@ ws.onmessage = function(event) {
 				
 				if (path == 'environment.wind.directionTrue') {
 					if (directionTrueDampened == 0) directionTrueDampened = value;
-					directionTrueDampened = (1-dampingFactor) * directionTrueDampened + dampingFactor * value;
+					directionTrueDampened = (1-dampingFactor) * (directionTrueDampened+10) + dampingFactor * (value+10) - 10;
 					path = 'environment.wind.directionTrueDampened';
 					value = directionTrueDampened;
 					entry = {timestamp, source, path, value};
 					signalkData[path] = entry;  
 				}
+				
+				if (path == 'environment.wind.speedTrue') {
+					if (speedTrueDampened == 0) speedTrueDampened = value;
+					speedTrueDampened = (1-dampingFactor) * (speedTrueDampened) + dampingFactor * (value);
+					path = 'environment.wind.speedTrueDampened';
+					value = speedTrueDampened;
+					entry = {timestamp, source, path, value};
+					signalkData[path] = entry;
+					path = 'environment.wind.speedTrueDampenedBft';
+					value = format_Bft(speedTrueDampened);
+					entry = {timestamp, source, path, value};
+					signalkData[path] = entry;
+				}
+				
+				
 			}
 
 			// present the updated dictionary to the screen at the specified refresh rate
