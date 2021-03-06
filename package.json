@@ -1,6 +1,6 @@
 {
   "name": "signalk-browser",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Some displays presenting SignalK nautical data",
   "main": "index.js",
   "scripts": {
