@@ -85,6 +85,26 @@ var displayFields = [
 ];
 // end user config
 
+var batteryFields = [
+	[
+		{ key: 'electrical.batteries.mainBattery.voltage', label: 'Battery voltage' },
+		{ key: 'electrical.batteries.mainBattery.current', label: 'Charge current' },
+	],
+	[
+		{ key: 'electrical.solar.charger1.stateOfOperation', label: 'State' },
+		{ key: 'electrical.solar.charger1.errorCode', label: 'errorCode' },
+	],
+	[
+		{ key: 'electrical.solar.panel.voltage', label: 'Panel voltage' },
+		{ key: 'electrical.solar.panel.power', label: 'Panel power' },
+	],
+	[
+		{ key: 'electrical.solar.charger1.yieldToday', label: 'Yield today' },
+		{ key: 'electrical.solar.charger1.yieldYesterday', label: 'Yield yesterday' },
+	]
+];
+// end user config
+
 var displayDiv = document.getElementById('display');
 var dataDiv = document.getElementById('data');
 var logDiv = document.getElementById('log');
@@ -240,6 +260,45 @@ function printSignalkDisplay(signalkData) {
 	var result = "<table border=1 width='100%'>";
 	for(j = 0; j < displayFields.length; j++) {
 		var row = displayFields[j];
+		result += "<tr>";
+		for(k = 0; k < row.length; k++) {
+			var key = row[k].key;
+			var label = row[k].label;
+			if(key !== 'spinner') {
+				printCell(key, label);
+			} else {
+				i = ~~(Date.now()/1000) % (spinner.length);
+				result += ('<td align=center onclick="presentation=\'table\';" ontouchstart="presentation=\'table\';" style="cursor: pointer;"><h1>' + spinner[i] + '</td>');
+			}
+		}
+		result += "</tr>";
+	}
+	result += "</table>";
+	displayDiv.innerHTML = result;
+	dataDiv.innerHTML = "";
+	if (presentation == "display")
+		gaugeDiv.innerHtml = "";
+		
+}
+
+
+function printSignalkBattery(signalkData) {
+	// print the contents of a dictionary in the form of an HTML table
+	var size = Math.min(document.documentElement.clientWidth-40, document.documentElement.clientHeight-40)
+	function printCell (key, label) {
+		item = getKey(key, signalkData);
+		if (typeof(item.value) != 'undefined') { // don't print undefined
+			result += "<td><table border=0 width='" + size/2 + "px'>";
+			result += "<tr id='displayLabel'><td><a title='" + descriptions[item.path] + "'>" + label + "</a></td>";
+			result += "<tr id='displayValue'><td>" + (item.stale ? "<strike> " : " ") + item.value + " </td>";
+			result += "<tr id='displayUnit'><td>" + item.unit + "</td>";
+			result += "</table></td>";
+		}
+	}
+
+	var result = "<table border=1 width='100%'>";
+	for(j = 0; j < batteryFields.length; j++) {
+		var row = batteryFields[j];
 		result += "<tr>";
 		for(k = 0; k < row.length; k++) {
 			var key = row[k].key;
@@ -487,6 +546,8 @@ ws.onmessage = function(event) {
 					printSignalkDisplay(signalkData);
 				if (presentation == 'gauge' || presentation == 'both')
 					printSignalkGauge(signalkData);
+				if (presentation == 'battery')
+					printSignalkBattery(signalkData);
 				lastUpdate = Date.now();
 			}
 		}
