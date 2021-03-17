@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <!--
 //  
@@ -10,9 +9,8 @@
 // version 3 of the License, or (at your option) any later version. 
 //
 -->
-
-<html>
-<head>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -28,8 +26,8 @@
 </head>
 <body>
 	<div id="data"></div>
-	<div id="gauge" style="display: inline-block; vertical-align:top;"></div>
-	<div id="display" style="display: inline-block; vertical-align:top;"></div>
+	<div id="gauge" style="display: inline-block; vertical-align:top;"><canvas id="myCanvas" width="843" height="843"></canvas></div>
+	<div id="display" style="display: inline-block; vertical-align:top;"><table width="100%" border="1"><tbody><tr><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="The current true north heading of the vessel, equals " headingmagnetic="" adjusted="" for="" magneticvariation''="">HDG</a></td></tr><tr id="displayValue"><td> 184 </td></tr><tr id="displayUnit"><td>deg</td></tr></tbody></table></td><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="Course over ground (true)">COG</a></td></tr><tr id="displayValue"><td> 207 </td></tr><tr id="displayUnit"><td>deg</td></tr></tbody></table></td></tr><tr><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="Vessel speed through the water">STW</a></td></tr><tr id="displayValue"><td> 0.0 </td></tr><tr id="displayUnit"><td>kts</td></tr></tbody></table></td><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="Vessel speed over ground. If converting from AIS " high'="" value,="" set="" to="" 102.2="" (ais="" max="" value)="" and="" add="" warning="" in="" notifications'="">SOG</a></td></tr><tr id="displayValue"><td> 0.0 </td></tr><tr id="displayUnit"><td>kts</td></tr></tbody></table></td></tr><tr><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="Apparent wind angle, negative to port">AWA</a></td></tr><tr id="displayValue"><td> -146 </td></tr><tr id="displayUnit"><td>deg</td></tr></tbody></table></td><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="True wind angle based on speed through water, negative to port">TWA</a></td></tr><tr id="displayValue"><td> -146 </td></tr><tr id="displayUnit"><td>deg</td></tr></tbody></table></td></tr><tr><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="Apparent wind speed">AWS</a></td></tr><tr id="displayValue"><td> 4.8 </td></tr><tr id="displayUnit"><td>kts</td></tr></tbody></table></td><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="Wind speed over water (as calculated from speedApparent and vessel" s="" speed="" through="" water)'="">TWS</a></td></tr><tr id="displayValue"><td> 4.8 </td></tr><tr id="displayUnit"><td>kts</td></tr></tbody></table></td></tr><tr><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="The wind direction relative to true north">TWD</a></td></tr><tr id="displayValue"><td> 38 </td></tr><tr id="displayUnit"><td>deg</td></tr></tbody></table></td><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="undefined">TWDM</a></td></tr><tr id="displayValue"><td> 32 </td></tr><tr id="displayUnit"><td>deg</td></tr></tbody></table></td></tr><tr></tr><tr><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="undefined">TWSD</a></td></tr><tr id="displayValue"><td> 8.5 </td></tr><tr id="displayUnit"><td>kts</td></tr></tbody></table></td><td><table width="421.5px" border="0"><tbody><tr id="displayLabel"><td><a title="undefined">TWSB</a></td></tr><tr id="displayValue"><td> 3 </td></tr><tr id="displayUnit"><td>Bft</td></tr></tbody></table></td></tr></tbody></table></div>
 	<div id="log"></div>
 
 	<script>
@@ -42,9 +40,9 @@ var directionTrueDampened = 0;
 var speedTrueDampened = 0;
 //
 // Configure your signalk url:port below, like openplotter.myboat.local:3000 or 10.10.10.1:3000
-/*
+
 myServerURL = "http://10.10.10.1:3000";
-*/
+/**/
 
 /*
 var myServerURL = "https://cloud.signalk.org:443";
@@ -599,5 +597,6 @@ ws.onmessage = function(event) {
 }
 
 	</script>
-</body>
-</html>
+
+
+</body></html>
