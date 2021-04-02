@@ -73,7 +73,7 @@ var displayFields = [
 	],
 	[
 		{ key: 'environment.wind.directionTrue', label: 'TWD' },
-		{ key: 'environment.wind.directionTrueDampened', label: 'TWDM' },
+		{ key: 'environment.wind.cardinalDirection', label: 'TWCD' },
 	],
 	[
 		{ key: 'navigation.courseRhumbline.nextPoint.distance', label: 'RNG' },
@@ -234,6 +234,26 @@ function format_Bft(windSpeed) {
 	if (x == 23) return ("6-");
 	if (x == 24) return ("6");
 	if (x > 24) return ("7 or more");
+}
+
+function format_cardinal_direction(directionTrue) {
+	x=Math.round(directionTrue / 10);
+	if (x == 35 || x == 0 || x == 1) return ("N");
+	if (x == 2 || x == 3) return ("NNE");
+	if (x == 4 || x == 5) return ("NE");
+	if (x == 6 || x == 7) return ("ENE");
+	if (x == 8 || x == 9 || x == 10) return ("E");
+	if (x == 11 || x == 12) return ("ESE");
+	if (x == 13 || x == 14) return ("SE");
+	if (x == 15 || x == 16) return ("SSE");
+	if (x == 17 || x == 18 || x == 19) return ("S");
+	if (x == 20 || x == 21) return ("SSW");
+	if (x == 22 || x == 23) return ("SW");
+	if (x == 24 || x == 25) return ("WSW");
+	if (x == 26 || x == 27 || x == 28) return ("W");
+	if (x == 29 || x == 30) return ("WNW");
+	if (x == 31 || x == 32) return ("NW");
+	if (x == 33 || x == 34) return ("NNW");
 }
 
 function printSignalkTable(signalkData) {
@@ -419,7 +439,7 @@ function printSignalkGauge(signalkData) {
 	// Get data
 	angleTrue = getValue('environment.wind.angleTrueWater', signalkData)
 	angleApparent = getValue('environment.wind.angleApparent', signalkData)
-	speedTrue = getValue('environment.wind.speedTrue', signalkData)
+	windGeo = getValue('environment.wind.cardinalDirection', signalkData) + " " + getValue('environment.wind.speedTrueDampenedBft', signalkData)
 	speedApparent = getValue('environment.wind.speedApparent', signalkData)
 	distance = getValue('navigation.courseRhumbline.nextPoint.distance', signalkData)
 	velocityMadeGood = getValue('navigation.courseRhumbline.nextPoint.velocityMadeGood', signalkData)
@@ -442,8 +462,8 @@ function printSignalkGauge(signalkData) {
 		ctx.fillText(speedApparent + " kts", 0, radius * 0.1);
 	}
 	ctx.fillStyle = "#0000FF";
-	if (speedTrue) {
-		ctx.fillText(speedTrue + " kts", 0, radius * 0.3);
+	if (windGeo) {
+		ctx.fillText(windGeo, 0, radius * 0.3);
 	}
 
 	ctx.fillStyle="orange";
@@ -563,6 +583,11 @@ ws.onmessage = function(event) {
 					value = directionTrueDampened;
 					entry = {timestamp, source, path, value};
 					signalkData[path] = entry;  
+					
+					path = 'environment.wind.cardinalDirection';
+					value = format_cardinal_direction(directionTrueDampened);
+					entry = {timestamp, source, path, value};
+					signalkData[path] = entry;  
 				}
 				
 				if (path == 'environment.wind.speedTrue') {
@@ -572,6 +597,7 @@ ws.onmessage = function(event) {
 					value = speedTrueDampened;
 					entry = {timestamp, source, path, value};
 					signalkData[path] = entry;
+					
 					path = 'environment.wind.speedTrueDampenedBft';
 					value = format_Bft(speedTrueDampened);
 					entry = {timestamp, source, path, value};
