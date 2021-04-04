@@ -142,7 +142,7 @@ function sortDictionary(dict) {
 function getKey(key, signalkData) {
 	// based on the name of the key, get the constituents out of the signalkData and convert if needed
 	myRow = signalkData[key];
-	if (typeof(myRow) != 'undefined') {
+	if (typeof(myRow) !== 'undefined') {
 		try {
 			//console.log(key);
 			path = myRow['path']
@@ -191,7 +191,7 @@ function getKey(key, signalkData) {
 function getValue(key, signalkData) {
 	// Get only the value of a key
 	item = getKey(key, signalkData);
-	if (! item.stale)
+	if (! item.stale && item !== undefined)
 		return item.value;
 	else
 		return null;
@@ -237,8 +237,8 @@ function format_Bft(windSpeed) {
 }
 
 function format_cardinal_direction(directionTrue) {
-	x=Math.round(directionTrue / 10);
-	if (x == 35 || x == 0 || x == 1) return ("N");
+	x = Math.round(directionTrue * 180.0 / Math.PI / 10);
+	if (x == 35 || x == 36 || x == 0 || x == 1) return ("N");
 	if (x == 2 || x == 3) return ("NNE");
 	if (x == 4 || x == 5) return ("NE");
 	if (x == 6 || x == 7) return ("ENE");
@@ -437,9 +437,14 @@ function printSignalkGauge(signalkData) {
 	}
 
 	// Get data
-	angleTrue = getValue('environment.wind.angleTrueWater', signalkData)
-	angleApparent = getValue('environment.wind.angleApparent', signalkData)
-	windGeo = getValue('environment.wind.cardinalDirection', signalkData) + " " + getValue('environment.wind.speedTrueDampenedBft', signalkData)
+	angleTrue = getValue('environment.wind.angleTrueWater', signalkData);
+	angleApparent = getValue('environment.wind.angleApparent', signalkData);
+	windCardinal = getValue('environment.wind.cardinalDirection', signalkData);
+	if (windCardinal) {
+		windGeo =  windCardinal + " " + getValue('environment.wind.speedTrueDampenedBft', signalkData);
+	} else {
+		windGeo =  getValue('environment.wind.speedTrue', signalkData) + " kts";
+	}
 	speedApparent = getValue('environment.wind.speedApparent', signalkData)
 	distance = getValue('navigation.courseRhumbline.nextPoint.distance', signalkData)
 	velocityMadeGood = getValue('navigation.courseRhumbline.nextPoint.velocityMadeGood', signalkData)
@@ -493,7 +498,7 @@ function httpGetAsync(theUrl, callback) {
 
 var units = {}  // holds (path, units) tuplets, derived from the schema definition
 var descriptions = {}  // holds (path, description) tuplets, derived from the schema definition
-units['environment.wind.directionTrueDampened'] = 'rad';
+units['environment.wind.directionTrue_smooth'] = 'rad';
 units['environment.wind.speedTrueDampened'] = 'm/s';
 units['environment.wind.speedTrueDampenedBft'] = 'Bft';
 
@@ -576,16 +581,9 @@ ws.onmessage = function(event) {
 				signalkData[path + source] = entry;  
 				signalkData[path] = entry;  
 				
-				if (path == 'environment.wind.directionTrue') {
-					if (directionTrueDampened == 0) directionTrueDampened = value;
-					directionTrueDampened = (1-dampingFactor) * (directionTrueDampened+10) + dampingFactor * (value+10) - 10;
-					path = 'environment.wind.directionTrueDampened';
-					value = directionTrueDampened;
-					entry = {timestamp, source, path, value};
-					signalkData[path] = entry;  
-					
+				if (path == 'environment.wind.directionTrue_smooth') {
 					path = 'environment.wind.cardinalDirection';
-					value = format_cardinal_direction(directionTrueDampened);
+					value = format_cardinal_direction(value);
 					entry = {timestamp, source, path, value};
 					signalkData[path] = entry;  
 				}
@@ -603,8 +601,7 @@ ws.onmessage = function(event) {
 					entry = {timestamp, source, path, value};
 					signalkData[path] = entry;
 				}
-				
-				
+
 			}
 
 			// present the updated dictionary to the screen at the specified refresh rate
