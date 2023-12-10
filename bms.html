@@ -1,0 +1,198 @@
+var bmsTemplate = `
+<html>
+<head>
+<style>
+body {
+	font-size: 21px;
+	font-family: Verdana, Geneva, sans-serif;
+	color: #333;
+	padding: 0;
+	margin: 3;
+	background-color: #FFFFFF;
+}
+
+.charge { grid-area: charge; height: 82px;}
+.discharge { grid-area: discharge; height: 82px;}
+.warning {
+	grid-area: warning;
+	width: 110px;}
+.arrow {
+	grid-area: arrow; 
+	background-image: url("images/charging-ok.png");
+	background-position: center;
+	background-repeat: no-repeat;
+	height: 86px;
+	color: white;
+	font-weight: bold;
+}
+.state { 
+	grid-area: state; 	
+	display: flex;
+    justify-content: center;
+    align-items: center;
+	width: 110px;
+}
+.message { grid-area: message; }
+
+.cell {
+	background-image: url("images/cell-ok.png");
+	background-position: center;
+	background-repeat: no-repeat;
+	width: 110px;
+	height: 128px;
+	color: white;
+	font-weight: bold;
+}
+
+.cell0 { grid-area: cell0; }
+.cell1 { grid-area: cell1; }
+.cell2 { grid-area: cell2; }
+.cell3 { grid-area: cell3; }
+.battery { grid-area: battery; }
+
+.grid-container {
+  align: center;
+  display: grid;
+  width: 555px;
+  grid-template-areas:
+    'charge charge discharge discharge battery'
+    'warning arrow arrow state battery'
+    'message message message message battery'
+	'cell0 cell1 cell2 cell3 battery';
+  xbackground-color: #2196F3;
+  margin: auto;
+}
+
+.grid-container > div {
+	xbackground-color: rgba(255, 255, 255, 0.8);
+	display: flex;
+    justify-content: center;
+    align-items: center;
+	text-align: center;
+	padding: 2px 0;
+}
+
+.indicator-container {
+	position: relative; 
+	height: 100%;
+	width: 70px;
+	xmargin: 10px;
+	border-radius: 5px;
+	border:1px solid;
+	margin: 0;
+	background-color: #F8F8F8;
+}
+.indicator-bar {
+	position: absolute; 
+	bottom: 0px;
+	width:64px;
+	margin: 3px; 
+	border-radius: 5px; 
+	background-image: 
+		repeating-linear-gradient(0deg, #70ad46 0 22px, #F8F8F8 22px 25px);
+}
+.percentage {
+	position: relative;
+	top: 0;
+	width: 70px; 
+	text-align: center;
+}
+
+table, th, td {
+  border-collapse: collapse;
+}
+
+.properties td {
+  border: 1px solid black;
+  width: 80px;
+}
+th {
+	text-align: right;
+}
+
+
+</style>
+</head>
+<body>
+<div class="grid-container">
+	<div class="charge"><img src="images/<chargeIcon>"></div>
+	<div class="discharge"><img src="images/<dischargeIcon>"></div>
+	<div class="warning"><img src="images/<alarmIcon>"></div>
+	<div class="arrow">
+		<chargeStatus><br>
+		<packCurrent>A<br>&nbsp;	
+	</div>
+	<div class="state">
+		<packVoltage>V<br>
+		&Delta; <packDeltaV>V</div>
+	<div class="message"><bmsStatus></div>
+	<div class="cell0 cell"><myCellVoltage1>V</div>
+	<div class="cell1 cell"><myCellVoltage2>V</div>
+	<div class="cell2 cell"><myCellVoltage3>V</div>
+	<div class="cell3 cell"><myCellVoltage4>V</div>
+	<div class="battery">
+		<div class="indicator-container">
+			<div class="indicator-bar" style="height:<packSoc>%;"> </div>
+			<div class="percentage"><packSoc>%</div>
+		</div>
+	</div>
+</div>
+
+
+<br>
+<table align=center class="properties">
+   <tr>
+      <th></th>
+      <th>Cell<br>(V)</th>
+      <th>SOC<br>(%)</th>
+      <th>Temp<br>(&deg;C)</th>
+      <th>&nbsp;Current<br>(A)</th>
+   </tr>
+   <tr>
+      <th>Charge disconnect</td>
+	  <td align=right><chargeDisconnectVoltage></td>
+	  <td align=right><chargeDisconnectSoc></td>
+	  <td align=right><chargeDisconnectTemp></td>
+	  <td align=right><chargeDisconnectCurrent></td>
+   </tr>
+   <tr>
+      <th>Charge reconnect</td>
+	  <td align=right><chargeReconnectVoltage></td>
+	  <td align=right><chargeReconnectSoc></td>
+	  <td align=right><chargeReconnectTemp></td>
+	  <td align=right><chargeReconnectCurrent></td>
+    </tr>
+   <tr>
+      <th>Charge alarm</td>
+	  <td align=right><chargeAlarmVoltage></td>
+	  <td align=right><chargeAlarmSoc></td>
+	  <td align=right><chargeAlarmTemp></td>
+	  <td align=right><chargeAlarmCurrent></td>
+   </tr>
+   <tr>
+      <th>Discharge alarm</td>
+	  <td align=right><dischargeAlarmVoltage></td>
+	  <td align=right><dischargeAlarmSoc></td>
+	  <td align=right><dischargeAlarmTemp></td>
+	  <td align=right><dischargeAlarmCurrent></td>
+   </tr>
+   <tr>
+      <th>Discharge reconnect</td>
+	  <td align=right><dischargeReconnectVoltage></td>
+	  <td align=right><dischargeReconnectSoc></td>
+	  <td align=right><dischargeReconnectTemp></td>
+	  <td align=right><dischargeReconnectCurrent></td>
+   </tr>
+   <tr>
+      <th>Discharge disconnect</td>
+	  <td align=right><dischargeDisconnectVoltage></td>
+	  <td align=right><dischargeDisconnectSoc></td>
+	  <td align=right><dischargeDisconnectTemp></td>
+	  <td align=right><dischargeDisconnectCurrent></td>
+   </tr>
+</table>
+</body>
+</html>
+
+
+`

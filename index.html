@@ -25,6 +25,7 @@
 	#displayValue td {text-align: center; vertical-align: middle; font-size: xx-large; font-weight: bold}
 	#displayUnit td {text-align: center; vertical-align: middle;}
   </style>
+  <script src="bms.html"></script>
 </head>
 <body>
 	<div id="data"></div>
@@ -124,6 +125,7 @@ parameter_pairs.forEach(function (item) {
 	if (item.split("=")[0] == "presentation")
 		presentation = item.split("=")[1]
 })
+//presentation = 'bms';
 
 function sortDictionary(dict) {
 	// sort a dictionary based on the key
@@ -486,6 +488,77 @@ function printSignalkGauge(signalkData) {
 }
 
 
+function printBms(signalkData) {
+	var template = bmsTemplate;  // from the import
+	
+	function replaceTemplate (text, replaceBy) {
+		template = template.replaceAll(text, replaceBy);
+	}
+	
+	bmsConfig = JSON.parse(getValue('bms.config', signalkData));
+	bmsState = JSON.parse(getValue('bms.state', signalkData));
+	
+	cell0Voltage = getValue('cell0.voltage', signalkData);
+	cell1Voltage = getValue('cell1.voltage', signalkData);
+	cell2Voltage = getValue('cell2.voltage', signalkData);
+	cell3Voltage = getValue('cell3.voltage', signalkData);
+	
+	replaceTemplate("<myCellVoltage1>", cell0Voltage);
+	replaceTemplate("<myCellVoltage2>", cell1Voltage);
+	replaceTemplate("<myCellVoltage3>", cell2Voltage);
+	replaceTemplate("<myCellVoltage4>", cell3Voltage);
+	replaceTemplate("<chargeDisconnectVoltage>", bmsConfig["chargeDisconnectVoltage"]);
+	replaceTemplate("<chargeDisconnectSoc>", bmsConfig["chargeDisconnectSoc"]);
+	replaceTemplate("<chargeDisconnectTemp>", bmsConfig["chargeDisconnectTemp"]);
+	replaceTemplate("<chargeDisconnectCurrent>", bmsConfig["chargeDisconnectCurrent"]);
+	replaceTemplate("<chargeReconnectVoltage>", bmsConfig["chargeReconnectVoltage"]);
+	replaceTemplate("<chargeReconnectSoc>", bmsConfig["chargeReconnectSoc"]);
+	replaceTemplate("<chargeReconnectTemp>", bmsConfig["chargeReconnectTemp"]);
+	replaceTemplate("<chargeReconnectCurrent>", bmsConfig["chargeReconnectCurrent"]);
+	replaceTemplate("<chargeAlarmVoltage>", bmsConfig["chargeAlarmVoltage"]);
+	replaceTemplate("<chargeAlarmSoc>", bmsConfig["chargeAlarmSoc"]);
+	replaceTemplate("<chargeAlarmTemp>", bmsConfig["chargeAlarmTemp"]);
+	replaceTemplate("<chargeAlarmCurrent>", bmsConfig["chargeAlarmCurrent"]);
+	replaceTemplate("<dischargeAlarmVoltage>", bmsConfig["dischargeAlarmVoltage"]);
+	replaceTemplate("<dischargeAlarmSoc>", bmsConfig["dischargeAlarmSoc"]);
+	replaceTemplate("<dischargeAlarmTemp>", bmsConfig["dischargeAlarmTemp"]);
+	replaceTemplate("<dischargeAlarmCurrent>", bmsConfig["dischargeAlarmCurrent"]);
+	replaceTemplate("<dischargeReconnectVoltage>", bmsConfig["dischargeReconnectVoltage"]);
+	replaceTemplate("<dischargeReconnectSoc>", bmsConfig["dischargeReconnectSoc"]);
+	replaceTemplate("<dischargeReconnectTemp>", bmsConfig["dischargeReconnectTemp"]);
+	replaceTemplate("<dischargeReconnectCurrent>", bmsConfig["dischargeReconnectCurrent"]);
+	replaceTemplate("<dischargeDisconnectVoltage>", bmsConfig["dischargeDisconnectVoltage"]);
+	replaceTemplate("<dischargeDisconnectSoc>", bmsConfig["dischargeDisconnectSoc"]);
+	replaceTemplate("<dischargeDisconnectTemp>", bmsConfig["dischargeDisconnectTemp"]);
+	replaceTemplate("<dischargeDisconnectCurrent>", bmsConfig["dischargeDisconnectCurrent"]);
+	replaceTemplate("<packSoc>", bmsState["packSoc"].toFixed(1));
+	replaceTemplate("<packCurrent>", bmsState["packCurrent"]);
+	replaceTemplate("<bmsStatus>", bmsState["bmsStatus"]);
+	
+	packVoltage = (cell0Voltage + cell1Voltage + cell2Voltage + cell3Voltage).toFixed(3);
+	replaceTemplate("<packVoltage>", packVoltage);
+	
+	chargeStatus = bmsState["packCurrent"] > 0 ? "Charging" : "Discharging";
+	replaceTemplate("<chargeStatus>", chargeStatus);
+	
+	deltaVoltage = (Math.max(cell0Voltage, cell1Voltage, cell2Voltage, cell3Voltage) - Math.min(cell0Voltage, cell1Voltage, cell2Voltage, cell3Voltage)).toFixed(3);
+	replaceTemplate("<packDeltaV>", deltaVoltage);
+	
+	chargeIcon = (" " + bmsState["bmsStatus"]).includes(" chargeDisconnect") ? "charge-not-connected.png": "charge-connected.png";
+	replaceTemplate("<chargeIcon>", chargeIcon);
+	
+	dischargeIcon = bmsState["bmsStatus"].includes("dischargeDisconnect") ? "discharge-not-connected.png": "discharge-connected.png";
+	replaceTemplate("<dischargeIcon>", dischargeIcon);
+	
+	alarmIcon = "alarm0.png";
+	if (bmsState["bmsStatus"].includes("Alarm")) alarmIcon = "alarm1.png";
+	if (bmsState["bmsStatus"].includes("Disconnect")) alarmIcon = "alarm2.png";
+	replaceTemplate("<alarmIcon>", alarmIcon);
+
+	displayDiv.innerHTML = template;
+	dataDiv.innerHTML = "";
+}
+
 function httpGetAsync(theUrl, callback) {
 	// get a file through HTTP
 	var xmlHttp = new XMLHttpRequest();
@@ -617,6 +690,8 @@ ws.onmessage = function(event) {
 					printSignalkGauge(signalkData);
 				if (presentation == 'battery')
 					printSignalkBattery(signalkData);
+				if (presentation == 'bms')
+					printBms(signalkData);
 				lastUpdate = Date.now();
 			}
 		}
