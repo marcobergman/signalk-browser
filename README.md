@@ -29,3 +29,7 @@ With ?presentation=both, it shows both wind gauge and information display, orien
 
 With ?presentation=battery, it shows a battery panel, showing data from a ve.direct victron interface (see https://github.com/marcobergman/SensESP/tree/master/examples/ve.direct_mppt)
 ![example](example4.png)
+
+With ?presentation=bms, it shows a panel with the details from the [diy battery management system](https://github.com/marcobergman/bms):
+
+![image](https://github.com/marcobergman/signalk-browser/assets/17980560/41b3a51e-afe1-4b2a-a6dc-fe6a5e2adbcc)
