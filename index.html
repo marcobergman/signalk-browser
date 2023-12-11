@@ -532,6 +532,7 @@ function printBms(signalkData) {
 	replaceTemplate("<dischargeDisconnectTemp>", bmsConfig["dischargeDisconnectTemp"]);
 	replaceTemplate("<dischargeDisconnectCurrent>", bmsConfig["dischargeDisconnectCurrent"]);
 	replaceTemplate("<packSoc>", bmsState["packSoc"].toFixed(1));
+	replaceTemplate("<packTemp>", bmsState["packTemp"].toFixed(1));
 	replaceTemplate("<packCurrent>", bmsState["packCurrent"]);
 	replaceTemplate("<bmsStatus>", bmsState["bmsStatus"]);
 	
