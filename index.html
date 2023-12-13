@@ -546,7 +546,7 @@ function printBms(signalkData) {
 		replaceTemplate("<arrowDirection>", "arrowUp");
 	} else {
 		replaceTemplate("<chargeA>", "Charging");
-		replaceTemplate("<chargeA>", bmsState["packDischargeCurrent"] + "A");
+		replaceTemplate("<chargeB>", - bmsState["packDischargeCurrent"] + "A");
 		replaceTemplate("<arrowDirection>", "arrowDown");
 	}
 	
