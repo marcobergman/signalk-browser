@@ -16,7 +16,16 @@ body {
 .warning {
 	grid-area: warning;
 	width: 110px;}
-.arrow {
+.arrowUp {
+	grid-area: arrow; 
+	background-image: url("images/discharging-ok.png");
+	background-position: center;
+	background-repeat: no-repeat;
+	height: 86px;
+	color: white;
+	font-weight: bold;
+}
+.arrowDown {
 	grid-area: arrow; 
 	background-image: url("images/charging-ok.png");
 	background-position: center;
@@ -118,9 +127,9 @@ th {
 	<div class="charge"><img src="images/<chargeIcon>"></div>
 	<div class="discharge"><img src="images/<dischargeIcon>"></div>
 	<div class="warning"><img src="images/<alarmIcon>"></div>
-	<div class="arrow">
-		<chargeStatus><br>
-		<packCurrent>A<br>&nbsp;	
+	<div class="<arrowDirection>">
+		<chargeA><br>
+		<chargeB>	
 	</div>
 	<div class="state">
 		<packVoltage>V<br>
@@ -133,7 +142,7 @@ th {
 	<div class="cell3 cell"><myCellVoltage4>V</div>
 	<div class="battery">
 		<div class="indicator-container">
-			<div class="indicator-bar" style="height:<packSoc>%;"> </div>
+			<div class="indicator-bar" style="height:<packSocBar>%;"> </div>
 			<div class="percentage"><packSoc>%</div>
 		</div>
 	</div>

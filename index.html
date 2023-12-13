@@ -532,15 +532,23 @@ function printBms(signalkData) {
 	replaceTemplate("<dischargeDisconnectTemp>", bmsConfig["dischargeDisconnectTemp"]);
 	replaceTemplate("<dischargeDisconnectCurrent>", bmsConfig["dischargeDisconnectCurrent"]);
 	replaceTemplate("<packSoc>", bmsState["packSoc"].toFixed(1));
+	replaceTemplate("<packSocBar>", bmsState["packSoc"] - 2);
 	replaceTemplate("<packTemp>", bmsState["packTemp"].toFixed(1));
-	replaceTemplate("<packCurrent>", bmsState["packCurrent"]);
+	replaceTemplate("<packDischargeCurrent>", bmsState["packDischargeCurrent"]);
 	replaceTemplate("<bmsStatus>", bmsState["bmsStatus"]);
 	
 	packVoltage = (cell0Voltage + cell1Voltage + cell2Voltage + cell3Voltage).toFixed(3);
 	replaceTemplate("<packVoltage>", packVoltage);
 	
-	chargeStatus = bmsState["packCurrent"] > 0 ? "Charging" : "Discharging";
-	replaceTemplate("<chargeStatus>", chargeStatus);
+	if (bmsState["packDischargeCurrent"] > 0) {
+		replaceTemplate("<chargeA>", bmsState["packDischargeCurrent"] + "A");
+		replaceTemplate("<chargeB>", "Discharging");
+		replaceTemplate("<arrowDirection>", "arrowUp");
+	} else {
+		replaceTemplate("<chargeA>", "Charging");
+		replaceTemplate("<chargeA>", bmsState["packDischargeCurrent"] + "A");
+		replaceTemplate("<arrowDirection>", "arrowDown");
+	}
 	
 	deltaVoltage = (Math.max(cell0Voltage, cell1Voltage, cell2Voltage, cell3Voltage) - Math.min(cell0Voltage, cell1Voltage, cell2Voltage, cell3Voltage)).toFixed(3);
 	replaceTemplate("<packDeltaV>", deltaVoltage);
