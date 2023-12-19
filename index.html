@@ -550,8 +550,20 @@ function printBms(signalkData) {
 		replaceTemplate("<arrowDirection>", "arrowDown");
 	}
 	
-	deltaVoltage = (Math.max(cell0Voltage, cell1Voltage, cell2Voltage, cell3Voltage) - Math.min(cell0Voltage, cell1Voltage, cell2Voltage, cell3Voltage)).toFixed(3);
+	maxVoltage = Math.max(cell0Voltage, cell1Voltage, cell2Voltage, cell3Voltage);
+	minVoltage = Math.min(cell0Voltage, cell1Voltage, cell2Voltage, cell3Voltage);
+	deltaVoltage = (maxVoltage - minVoltage).toFixed(3);
 	replaceTemplate("<packDeltaV>", deltaVoltage);
+	
+	cell0Class = "cell"; cell1Class = "cell"; cell2Class = "cell"; cell3Class = "cell";
+	if (cell0Voltage == maxVoltage) cell0Class = "cell-top"; if (cell1Voltage == maxVoltage) cell1Class = "cell-top";
+	if (cell2Voltage == maxVoltage) cell2Class = "cell-top"; if (cell3Voltage == maxVoltage) cell3Class = "cell-top"; 
+	if (cell0Voltage == minVoltage) cell0Class = "cell-bottom"; if (cell1Voltage == minVoltage) cell1Class = "cell-bottom";
+	if (cell2Voltage == minVoltage) cell2Class = "cell-bottom"; if (cell3Voltage == minVoltage) cell3Class = "cell-bottom"; 
+	replaceTemplate("<cell0Class>", cell0Class);
+	replaceTemplate("<cell1Class>", cell1Class);
+	replaceTemplate("<cell2Class>", cell2Class);
+	replaceTemplate("<cell3Class>", cell3Class);
 	
 	chargeIcon = (" " + bmsState["bmsStatus"]).includes(" chargeDisconnect") ? "charge-not-connected.png": "charge-connected.png";
 	replaceTemplate("<chargeIcon>", chargeIcon);
@@ -628,6 +640,7 @@ var ws = new WebSocket(wsURL);
 var subscriptionMessage = JSON.stringify({"context": "vessels." + vessel, "subscribe": [{"path": "*"}]});
 ws.onopen = function(event) {ws.send(subscriptionMessage)}
 ws.onclose = function() {
+  logDiv.innerHTML = "<H1>Connection closed</H1>";
   console.log("ws close");
 }
 

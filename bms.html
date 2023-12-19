@@ -53,6 +53,26 @@ body {
 	font-weight: bold;
 }
 
+.cell-top {
+	background-image: url("images/cell-top.png");
+	background-position: center;
+	background-repeat: no-repeat;
+	width: 110px;
+	height: 128px;
+	color: white;
+	font-weight: bold;
+}
+
+.cell-bottom {
+	background-image: url("images/cell-bottom.png");
+	background-position: center;
+	background-repeat: no-repeat;
+	width: 110px;
+	height: 128px;
+	color: white;
+	font-weight: bold;
+}
+
 .cell0 { grid-area: cell0; }
 .cell1 { grid-area: cell1; }
 .cell2 { grid-area: cell2; }
@@ -136,10 +156,10 @@ th {
 		&Delta; <packDeltaV>V<br>
 		<packTemp>&deg;C</div>
 	<div class="message"><bmsStatus></div>
-	<div class="cell0 cell"><myCellVoltage1>V</div>
-	<div class="cell1 cell"><myCellVoltage2>V</div>
-	<div class="cell2 cell"><myCellVoltage3>V</div>
-	<div class="cell3 cell"><myCellVoltage4>V</div>
+	<div class="cell0 <cell0Class>"><myCellVoltage1>V</div>
+	<div class="cell1 <cell1Class>"><myCellVoltage2>V</div>
+	<div class="cell2 <cell2Class>"><myCellVoltage3>V</div>
+	<div class="cell3 <cell3Class>"><myCellVoltage4>V</div>
 	<div class="battery">
 		<div class="indicator-container">
 			<div class="indicator-bar" style="height:<packSocBar>%;"> </div>
