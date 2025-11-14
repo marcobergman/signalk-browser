@@ -55,6 +55,10 @@ var timeOut = 60; // seconds before data is marked 'stale'
 
 var updatesPerSecond = 1;  // refresh rate
 
+var bearingToNextWaypointKey = "navigation.course.calcValues.bearingTrue";
+var velocityMadeGoodKey = "navigation.course.calcValues.velocityMadeGood";
+var distanceToNextWaypointKey = "navigation.course.calcValues.distance";
+
 var displayFields = [
 	[
 		{ key: 'navigation.headingTrue', label: 'HDG' },
@@ -163,17 +167,17 @@ function getKey(key, signalkData) {
 				value = JSON.stringify(myRow['value']);
 
 			// convert odd units
-			if (unit == 'rad' || path == 'navigation.courseRhumbline.nextPoint.bearingTrue') {
+			if (unit == 'rad' || path == bearingToNextWaypointKey) {
 				value = Math.round (value / Math.PI * 180, 0);
 				unit = 'deg';
 			}
-			if (unit == 'm/s' || path == 'navigation.courseRhumbline.nextPoint.velocityMadeGood') {
+			if (unit == 'm/s' || path == velocityMadeGoodKey) {
 				value = (value * 3600 / 1852);
 				precision = (value >= 10 ? 0 : 1);
 				value = value.toFixed(precision);
 				unit = 'kts';
 			}
-			if ((unit == 'm' && ! path.includes("environment.depth")) || path.includes("navigation.courseRhumbline.nextPoint.distance")) {
+			if ((unit == 'm' && ! path.includes("environment.depth")) || path.includes(distanceToNextWaypointKey)) {
 				value = (value / 1852).toFixed(1);
 				unit = 'NM';
 			}
@@ -385,6 +389,14 @@ function printSignalkGauge(signalkData) {
 	var radius = size / 2;
 	ctx.translate(radius, radius);
 	radius = radius * 0.95
+	ctx.font = radius*0.20 + "px monospace";
+	ctx.textBaseline="top";
+	ctx.textAlign="center";
+
+	function formatHeading(heading) {
+		return heading.toString().padStart(3, "0");
+			
+	}
 
 	function Arc(from, to, offset, lineWidth, strokeStyle){
 		ctx.beginPath();
@@ -412,7 +424,7 @@ function printSignalkGauge(signalkData) {
 	function drawBug(ctx, pos) {
 		// Draw heading bug, if BRG available
 		ctx.rotate(pos/180*Math.PI);
-		Arc(270-5, 270+5, 0, radius/8, "orange");
+		Arc(270-5, 270+5, -10, radius/8, "orange");
 		ctx.rotate(-pos/180*Math.PI);
 	}
 
@@ -431,10 +443,12 @@ function printSignalkGauge(signalkData) {
 			}
 	}
 
+	
 	// Heading bug
-	bearingTrue = getValue('navigation.courseRhumbline.nextPoint.bearingTrue', signalkData)
+	bearingTrue = getValue(bearingToNextWaypointKey, signalkData)
+	headingTrue = getValue('navigation.headingTrue', signalkData)
 	if (bearingTrue) {
-		headingTrue = getValue('navigation.headingTrue', signalkData)
+															   
 		if (headingTrue) {
 			drawBug (ctx, bearingTrue - headingTrue);
 		}
@@ -450,8 +464,9 @@ function printSignalkGauge(signalkData) {
 		windGeo =  getValue('environment.wind.speedTrue', signalkData) + " kts";
 	}
 	speedApparent = getValue('environment.wind.speedApparent', signalkData)
-	distance = getValue('navigation.courseRhumbline.nextPoint.distance', signalkData)
-	velocityMadeGood = getValue('navigation.courseRhumbline.nextPoint.velocityMadeGood', signalkData)
+	distance = getValue(distanceToNextWaypointKey, signalkData)
+	velocityMadeGood = getValue(velocityMadeGoodKey, signalkData)
+	speedThroughWater = getValue('navigation.speedThroughWater', signalkData);
 
 	// Draw the hands
 	if (angleTrue) {
@@ -462,10 +477,10 @@ function printSignalkGauge(signalkData) {
 	}
 
 	// Write the speeds
-	ctx.font = radius*0.20 + "px monospace";
+										 
 	ctx.globalCompositeOperation = 'difference';
-	ctx.textBaseline="top";
-	ctx.textAlign="center";
+						
+						
 
 	if (speedApparent) {
 		ctx.fillText(speedApparent + " kts", 0, radius * 0.1);
@@ -476,14 +491,23 @@ function printSignalkGauge(signalkData) {
 	}
 
 	ctx.fillStyle="orange";
-	if (distance) {
-		ctx.fillText(distance + " NM", 0, radius * -0.6);
+	if (distance && !isNaN(distance) ) {
+		ctx.fillText(distance + " NM", 0, radius * -0.5);
 	}
 
 	ctx.fillStyle="orange";
-	if (velocityMadeGood) {
-		ctx.fillText(velocityMadeGood + " kts", 0, radius * -0.4);
+	if (velocityMadeGood && !isNaN(velocityMadeGood)) {
+		ctx.fillText(velocityMadeGood + " kts", 0, radius * -0.3);
 	}
+
+	ctx.fillStyle = "#000000";
+	ctx.fillText(formatHeading(headingTrue), 0, radius * -0.7);
+
+
+	ctx.fillStyle = "#000000";
+	ctx.fillText(speedThroughWater + " kts", 0, radius * 0.5);
+
+
 
 }
 
@@ -721,5 +745,8 @@ ws.onmessage = function(event) {
 }
 
 	</script>
-</body>
-</html>
+	   
+	   
+
+
+</body></html>
