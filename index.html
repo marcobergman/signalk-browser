@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <!--
 //  
@@ -33,7 +34,7 @@
 	<div id="display" style="display: inline-block; vertical-align:top;"></div>
 	<div id="log"></div>
 
-	<script>
+<script>
 // Defaults:
 var myServerURL = location.protocol + "//" + location.host;
 var vessel = "self";
@@ -81,15 +82,15 @@ var displayFields = [
 		{ key: 'environment.wind.cardinalDirection', label: 'TWCD' },
 	],
 	[
-		{ key: 'navigation.courseRhumbline.nextPoint.distance', label: 'RNG' },
-		{ key: 'navigation.courseRhumbline.nextPoint.velocityMadeGood', label: 'VMG' },
-	],
-	[
 		{ key: 'environment.wind.speedTrueDampened', label: 'TWSD' },
 		{ key: 'environment.wind.speedTrueDampenedBft', label: 'TWSB' },
 	],
 	[
-		{ key: 'navigation.courseRhumbline.nextPoint.bearingTrue', label: 'BRG' },
+		{ key: distanceToNextWaypointKey, label: 'RNG' },
+		{ key: velocityMadeGoodKey, label: 'VMG' },
+	],
+	[
+		{ key: bearingToNextWaypointKey, label: 'BRG' },
 		{ key: 'spinner' },
 	],
 ];
@@ -120,16 +121,31 @@ var dataDiv = document.getElementById('data');
 var logDiv = document.getElementById('log');
 var gaugeDiv = document.getElementById('gauge');
 
-var spinner ="◐◓◑◒"
+var spinner ="|/-\\"
 
 // process http parameters
-presentation = 'both'
+presentation = "both";
+theme = "white";
 parameter_pairs = window.location.search.slice(1).split("&")
 parameter_pairs.forEach(function (item) {
 	if (item.split("=")[0] == "presentation")
 		presentation = item.split("=")[1]
+	if (item.split("=")[0] == "theme")
+		theme = item.split("=")[1]
 })
 //presentation = 'bms';
+
+var backgroundColor = "white";
+var textColor = "black";
+var headingColor = "black";
+
+if (theme == "dark") {
+	var backgroundColor = "black";
+	var textColor = "grey";
+	var headingColor = "white";
+}
+document.body.style = "background: " + backgroundColor + ";";
+gaugeDiv.style = "display: inline-block; vertical-align:top; background: " + backgroundColor + ";";
 
 function sortDictionary(dict) {
 	// sort a dictionary based on the key
@@ -168,7 +184,7 @@ function getKey(key, signalkData) {
 
 			// convert odd units
 			if (unit == 'rad' || path == bearingToNextWaypointKey) {
-				value = Math.round (value / Math.PI * 180, 0);
+				value = (Math.round (value / Math.PI * 180, 0)).toString().padStart(3, "0");
 				unit = 'deg';
 			}
 			if (unit == 'm/s' || path == velocityMadeGoodKey) {
@@ -303,7 +319,7 @@ function printSignalkDisplay(signalkData) {
 	function printCell (key, label) {
 		item = getKey(key, signalkData);
 		if (typeof(item.value) != 'undefined') { // don't print undefined
-			result += "<td><table border=0 width='" + size/2 + "px'>";
+			result += "<td><table style='color:" + textColor + ";' border=0 width='" + size/2 + "px'>";
 			result += "<tr id='displayLabel'><td><a title='" + descriptions[item.path] + "'>" + label + "</a></td>";
 			result += "<tr id='displayValue'><td>" + (item.stale ? "<strike> " : " ") + item.value + " </td>";
 			result += "<tr id='displayUnit'><td>" + item.unit + "</td>";
@@ -322,7 +338,7 @@ function printSignalkDisplay(signalkData) {
 				printCell(key, label);
 			} else {
 				i = ~~(Date.now()/1000) % (spinner.length);
-				result += ('<td align=center onclick="presentation=\'table\';" ontouchstart="presentation=\'table\';" style="cursor: pointer;"><h1>' + spinner[i] + '</td>');
+				result += ('<td align=center onclick="presentation=\'table\';" ontouchstart="presentation=\'table\';" style="cursor: pointer; color: ' + textColor + ';"><h1>' + spinner[i] + '</td>');
 			}
 		}
 		result += "</tr>";
@@ -433,13 +449,13 @@ function printSignalkGauge(signalkData) {
 	// Green arc
 	Arc(270,270+limit, -radius/8, radius/4, "green");
 	// Main Circle
-	Arc(0,360,0, radius/30, "#000000");
+	Arc(0,360,0, radius/30, textColor);
 	// Gauge ticks
 	for (x=0; x<360; x+=10) {
 			if (Math.round(x/30) == x/30) {
-					Arc(x-1, x+1, -radius/12, radius/6, "#000000")
+					Arc(x-1, x+1, -radius/12, radius/6, textColor)
 			} else {
-					Arc(x-1, x+1, -radius/32, radius/16, "#000000")
+					Arc(x-1, x+1, -radius/32, radius/16, textColor)
 			}
 	}
 
@@ -500,14 +516,12 @@ function printSignalkGauge(signalkData) {
 		ctx.fillText(velocityMadeGood + " kts", 0, radius * -0.3);
 	}
 
-	ctx.fillStyle = "#000000";
+	ctx.fillStyle = headingColor;
 	ctx.fillText(formatHeading(headingTrue), 0, radius * -0.7);
 
 
-	ctx.fillStyle = "#000000";
+	ctx.fillStyle = textColor;
 	ctx.fillText(speedThroughWater + " kts", 0, radius * 0.5);
-
-
 
 }
 
@@ -744,9 +758,6 @@ ws.onmessage = function(event) {
 	}
 }
 
-	</script>
+</script>
 	   
-	   
-
-
 </body></html>
